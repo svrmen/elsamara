@@ -1,0 +1,776 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ЭлектроСмета — Станислав</title>
+<!-- Библиотека для чтения xls/xlsx (работает при наличии интернета) -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#f7f9fc;--card:#ffffff;--muted:#606979;--ink:#0f172a;--accent:#2563eb;
+  --danger:#dc2626;--line:#e6e9ef;--chip:#eef2ff
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.46 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+.wrap{max-width:1100px;margin:0 auto;padding:16px}
+.grid{display:grid;gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
+h1{font-size:22px;margin:0 0 2px}
+h2{font-size:16px;margin:0 0 8px;color:var(--muted)}
+input,select,textarea{background:#fff;border:1px solid #d6dbe6;color:var(--ink);border-radius:10px;padding:10px;outline:none;width:100%}
+button{background:#fff;border:1px solid #cfd6e3;color:#0f172a;border-radius:10px;padding:8px 10px;cursor:pointer}
+button.primary{background:var(--accent);border-color:transparent;color:#fff;font-weight:600}
+button.ghost{background:#fff;border-color:#d1d5db}
+button.danger{background:#fff;border-color:#f4c7c7;color:#b91c1c}
+.btn-sm{padding:6px 8px;border-radius:8px;font-size:13px}
+.row{display:flex;gap:8px;align-items:center}
+.row.wrap{flex-wrap:wrap}
+.grow{flex:1}
+.muted{color:var(--muted)}
+.chip{display:inline-flex;gap:6px;align-items:center;padding:6px 10px;background:var(--chip);border:1px solid #dbe3ff;border-radius:999px;font-weight:600}
+.avatar{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;background:linear-gradient(135deg,#dbeafe,#ede9fe);border:1px solid #c7d2fe;color:#1e293b}
+.divider{height:1px;background:var(--line);margin:8px 0}
+table{width:100%;border-collapse:collapse}
+th,td{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-align:middle}
+.right{text-align:right}
+.pill{font-size:12px;border:1px solid #cfd6e3;padding:2px 8px;border-radius:999px;color:var(--muted);background:#fff}
+
+/* Модалка */
+.backdrop{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+.backdrop.show{display:flex}
+.modal{background:#fff;border-radius:16px;border:1px solid #d9e1ef;max-width:980px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modalHeader{display:flex;gap:8px;align-items:center;padding:12px;border-bottom:1px solid #eef2f8}
+.modalBody{display:grid;grid-template-rows:auto 1fr;gap:10px;padding:10px}
+.modalFooter{display:flex;gap:8px;justify-content:flex-end;padding:10px;border-top:1px solid #eef2f8;background:#fafcff}
+.x{border:none;background:transparent;font-size:22px;line-height:1;padding:6px 8px;cursor:pointer}
+#catGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.catCard{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:10px;cursor:pointer;display:grid;gap:6px;grid-template-columns:auto 1fr;align-items:center}
+.catIcon{font-size:20px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:#f2f6ff;border-radius:10px}
+.list{height:48vh;overflow:auto;border:1px dashed #d7deea;border-radius:12px;padding:2px;background:#fff}
+.item{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;padding:6px 8px;border-radius:10px}
+.item:hover{background:#f3f6fb}
+.priceEdit{width:88px}
+.note{min-height:74px}
+a.tel{color:inherit;text-decoration:none}
+
+/* Итоги */
+.totals{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.block{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px}
+.line{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding:6px 0}
+.line:last-child{border-bottom:none}
+
+/* === MOBILE PATCH === */
+@media (max-width: 740px){
+  .wrap{padding:10px}
+  h1{font-size:18px}
+  .card{padding:12px}
+  .row{gap:6px}
+  input,select,textarea,button{min-height:44px;font-size:16px}
+  button.btn-sm{min-height:38px}
+  input[type="checkbox"]{width:20px;height:20px}
+  table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  thead, tbody{min-width:760px}
+  .modal{width:100%;max-width:none;height:96vh;max-height:96vh;border-radius:12px}
+  .modalBody{grid-template-rows:auto 1fr}
+  .list{height:calc(96vh - 210px)}
+  .item{grid-template-columns:24px 1fr auto}
+  .priceEdit{width:78px}
+  .totals{grid-template-columns:1fr}
+  .card.grid:last-of-type{position:sticky;bottom:0;z-index:5;background:#fff;box-shadow:0 -8px 24px rgba(0,0,0,.08)}
+}
+</style>
+</head>
+<body>
+<div class="wrap grid" id="app">
+  <!-- Шапка -->
+  <div class="card">
+    <div class="row wrap" style="align-items:center">
+      <div class="row grow">
+        <div class="avatar">С</div>
+        <div>
+          <h1>ЭлектроСмета — Станислав</h1>
+          <div class="muted">Быстрый расчёт на объекте • офлайн</div>
+        </div>
+      </div>
+      <div class="grid" style="gap:6px;min-width:260px">
+        <div class="chip">📞 <a class="tel" id="proPhoneLink" href="tel:+79198094588">+7 919 809 45 88</a></div>
+        <div class="chip">👤 <span id="proNameView">Станислав</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Реквизиты -->
+  <div class="card grid">
+    <h2>Данные клиента и исполнителя</h2>
+    <div class="row wrap">
+      <input class="grow" id="client" placeholder="Клиент" />
+      <input class="grow" id="site" placeholder="Адрес / объект" />
+      <input style="max-width:180px" id="date" type="date" />
+      <input style="max-width:120px" id="currency" placeholder="Валюта" value="р." />
+    </div>
+    <div class="row wrap">
+      <input class="grow" id="estimateNo" placeholder="№ сметы (необязательно)" />
+      <input class="grow" id="validDays" type="number" min="0" placeholder="Срок действия, дней (например 7)" />
+    </div>
+    <div class="divider"></div>
+    <div class="row wrap">
+      <input class="grow" id="proName" value="Станислав" placeholder="Исполнитель — имя" />
+      <input class="grow" id="proPhone" value="+7 919 809 45 88" placeholder="Исполнитель — телефон" />
+    </div>
+  </div>
+
+  <!-- Таблица позиций -->
+  <div class="card grid">
+    <div class="row wrap">
+      <h2 class="grow">Позиции сметы</h2>
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <button id="addRow">+ Позиция</button>
+        <button id="openPrice">Из прайса</button>
+        <button id="importMaterials">Импорт материалов (XLS)</button>
+        <button id="btnTKP">ТКП / PDF</button>
+        <button id="btnSaveTKP">Скачать ТКП (HTML)</button>
+        <button id="exportPrice">Экспорт прайса</button>
+        <button id="importPrice">Импорт прайса</button>
+        <button id="btnPrintAll">Печать страницы</button>
+        <button id="btnClear" class="danger">Очистить</button>
+      </div>
+    </div>
+
+    <table id="items">
+      <thead>
+        <tr>
+          <th style="width:32px">#</th>
+          <th>Наименование</th>
+          <th style="width:90px">Ед.</th>
+          <th style="width:120px">Тип</th>
+          <th class="priceCol">Цена</th>     <!-- было фикс шириной -->
+          <th style="width:120px">Кол-во</th>
+          <th>Сумма</th>
+          <th style="width:40px"></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+
+    <div class="row wrap">
+      <textarea id="note" class="note grow" placeholder="Примечание для ТКП (появится в самом конце, например: «Для начала работ требуется предоплата на закупку материалов…»)"></textarea>
+    </div>
+  </div>
+
+  <!-- Итоги -->
+  <div class="card grid">
+    <h2>Итоги</h2>
+    <div class="totals">
+      <div class="block">
+        <div class="line"><span>Работы</span><b id="laborSum">0</b></div>
+        <div class="line"><span>Материалы</span><b id="matSum">0</b></div>
+        <div class="row wrap" style="margin-top:8px">
+          <input id="laborDiscount" placeholder="Скидка на работы, %" style="max-width:200px">
+          <input id="matMarkup" placeholder="Наценка на материалы, %" style="max-width:200px">
+          <input id="matDiscount" placeholder="Скидка на материалы, %" style="max-width:200px">
+          <input id="vat" placeholder="НДС/VAT, %" style="max-width:140px">
+        </div>
+      </div>
+      <div class="block">
+        <div class="line"><span>Итого (до НДС)</span><b id="subtotal">0</b></div>
+        <div class="line"><span>Итого к оплате</span><b id="grand">0</b></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модалка прайса -->
+  <div class="backdrop" id="backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modalHeader">
+        <div class="grow">
+          <div id="modalTitle" style="font-weight:700">Прайс</div>
+          <div class="muted" id="modalSub">Выберите категорию</div>
+        </div>
+        <button class="x" id="closeModal" aria-label="Закрыть">×</button>
+      </div>
+      <div class="modalBody">
+        <div id="catRow">
+          <div id="catGrid"></div>
+        </div>
+        <div id="pickRow" style="display:none">
+          <div class="row wrap">
+            <button id="backToCats" class="ghost btn-sm">← Категории</button>
+            <input id="search" class="grow" placeholder="Поиск…" />
+            <select id="filterType" style="max-width:160px">
+              <option value="">Все типы</option>
+              <option>Работа</option>
+              <option>Материал</option>
+            </select>
+            <button id="selectAll" class="ghost btn-sm">Выбрать все</button>
+            <button id="clearAll" class="ghost btn-sm">Снять все</button>
+            <span class="pill" id="pickCount">Выбрано: 0</span>
+          </div>
+          <div class="list" id="priceList"></div>
+        </div>
+      </div>
+      <div class="modalFooter">
+        <button id="addSelected" class="primary">Добавить выбранные</button>
+        <button id="closeModal2" class="ghost">Закрыть</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){ 'use strict';
+  /* ===== helpers ===== */
+  var $  = function(sel){ return document.querySelector(sel) };
+  var $$ = function(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)) };
+  var LS_KEY='electro_estimate_v1';
+  var LS_PRICE='electro_price_list_2025_02';
+
+  /* ===== ПРАЙС (из вашего списка) ===== */
+  var priceList = [
+    /* 1 Штробление */
+    ["1. Штробление, заделка","Штробление стен под проводку. (гипс)","м.п.",280,"Работа"],
+    ["1. Штробление, заделка","Штробление стен под проводку. (кирпич)","м.п.",350,"Работа"],
+    ["1. Штробление, заделка","Штробление стен под проводку. (бетон)","м.п.",430,"Работа"],
+    ["1. Штробление, заделка","Штробление стен под подразетник (гипс)","шт.",350,"Работа"],
+    ["1. Штробление, заделка","Штробление стен под подразетник (кирпич)","шт.",400,"Работа"],
+    ["1. Штробление, заделка","Штробление стен под подразетник (бетон)","шт.",500,"Работа"],
+    ["1. Штробление, заделка","Штробление стен под распаячную коробку (гипс)","шт.",450,"Работа"],
+    ["1. Штробление, заделка","Штробление стен под распаячную коробку (кирпич)","шт.",550,"Работа"],
+    ["1. Штробление, заделка","Штробление стен под распаячную коробку (бетон)","шт.",600,"Работа"],
+    ["1. Штробление, заделка","Штробление ниши под бокс (бокс до 12 позиций)","шт.",6000,"Работа"],
+    ["1. Штробление, заделка","Штробление ниши под бокс (бокс до 24 позиций)","шт.",8000,"Работа"],
+    ["1. Штробление, заделка","Заделка штробы с проводом","м.п.",150,"Работа"],
+    ["1. Штробление, заделка","Заделка подразетника, распаячной коробки","шт.",150,"Работа"],
+    /* 2 Прокладка кабеля */
+    ["2. Прокладка кабеля, провода","Прокладка кабеля трехпроводного сеч. до 4 кв.мм","м.п.",120,"Работа"],
+    ["2. Прокладка кабеля, провода","Прокладка кабеля трехпроводного сеч. до 10 кв.мм","м.п.",140,"Работа"],
+    ["2. Прокладка кабеля, провода","Прокладка кабеля пятипроводного сеч. до 4 кв.мм","м.п.",135,"Работа"],
+    ["2. Прокладка кабеля, провода","Прокладка кабеля пятипроводного сеч. до 10 кв.мм","м.п.",200,"Работа"],
+    ["2. Прокладка кабеля, провода","Прокладка провода однопроводного сеч. до 4 кв.мм.","м.п.",75,"Работа"],
+    ["2. Прокладка кабеля, провода","Прокладка провода однопроводного сеч. до 10 кв.мм.","м.п.",90,"Работа"],
+    ["2. Прокладка кабеля, провода","Монтаж кабель канала до 40х40","м.п.",210,"Работа"],
+    ["2. Прокладка кабеля, провода","Затяжка провода в гофру","м.п.",90,"Работа"],
+    /* 3 Электроустановочные */
+    ["3. Электроустановочные изделия","Установка розетки открытой установки до 16 А","шт.",400,"Работа"],
+    ["3. Электроустановочные изделия","Установка розетки скрытой установки до 16 А","шт.",250,"Работа"],
+    ["3. Электроустановочные изделия","Установка выключателя открытой установки до 16 А","шт.",400,"Работа"],
+    ["3. Электроустановочные изделия","Установка выключателя скрытой установки до 16 А","шт.",250,"Работа"],
+    ["3. Электроустановочные изделия","Установка блока выключателей,тройной + розетка (санузел)","шт.",1500,"Работа"],
+    ["3. Электроустановочные изделия","Установка розетки под электроплиту","шт.",1000,"Работа"],
+    ["3. Электроустановочные изделия","Установка люстры (обычная)","шт.",2500,"Работа"],
+    ["3. Электроустановочные изделия","Установка люстры (обычная + переделка)","шт.",3500,"Работа"],
+    ["3. Электроустановочные изделия","Установка люстры (большая,тяжелая,сложная)","шт.",5500,"Работа"],
+    ["3. Электроустановочные изделия","Установка настенного светильника (бра)","шт.",900,"Работа"],
+    ["3. Электроустановочные изделия","Установка люминесцентного светильника 2х36","шт.",1350,"Работа"],
+    ["3. Электроустановочные изделия","Установка люминесцентного светильника 4х18","шт.",1350,"Работа"],
+    ["3. Электроустановочные изделия","Установка светильника потолочного типа \"Армстронг\"","шт.",675,"Работа"],
+    ["3. Электроустановочные изделия","Установка точечного светильника (без высверливания отверстия)","шт.",420,"Работа"],
+    ["3. Электроустановочные изделия","Установка вентилятора (без  высверливания отверстия)","шт.",675,"Работа"],
+    ["3. Электроустановочные изделия","Установка понижающего трансформатора","шт.",525,"Работа"],
+    ["3. Электроустановочные изделия","Установка звонка и кнопки звонка","шт.",650,"Работа"],
+    ["3. Электроустановочные изделия","Установка тепловой завесы","шт.",2500,"Работа"],
+    ["3. Электроустановочные изделия","Установка электрической плиты (эл.духового шкафа, вар.панели) 1 предмет","шт.",1500,"Работа"],
+    ["3. Электроустановочные изделия","Установка диммера","шт.",700,"Работа"],
+    ["3. Электроустановочные изделия","Установка сушителя для рук","шт.",2000,"Работа"],
+    ["3. Электроустановочные изделия","Установка регулятора теплого пола","шт.",1500,"Работа"],
+    ["3. Электроустановочные изделия","Вызов специалиста на дом после 22-00, выходные и праздничные дни","усл.",600,"Работа"],
+    /* 4 Боксы/автоматы */
+    ["4. Бокс, автоматы, пускатель, счетчик","Установка пускателя магнитного на ток до 100 А","шт.",4650,"Работа"],
+    ["4. Бокс, автоматы, пускатель, счетчик","Установка пускателя магнитного на ток до 40 А","шт.",3150,"Работа"],
+    ["4. Бокс, автоматы, пускатель, счетчик","Сборка и установка бокса наружнего до 12 модулей","шт.",4500,"Работа"],
+    ["4. Бокс, автоматы, пускатель, счетчик","Сборка и установка бокса наружнего до 24 модулей","шт.",9000,"Работа"],
+    ["4. Бокс, автоматы, пускатель, счетчик","Сборка и установка бокса наружнего до 36 модулей","шт.",13000,"Работа"],
+    ["4. Бокс, автоматы, пускатель, счетчик","Установка рубильника до 250 А","шт.",4500,"Работа"],
+    ["4. Бокс, автоматы, пускатель, счетчик","Замена эл.счетчика с демонтажом старого на старое место(без DIN рейки)","шт.",1800,"Работа"],
+    ["4. Бокс, автоматы, пускатель, счетчик","Замена эл.счетчика с демонтажом старого в новый бокс","шт.",3750,"Работа"],
+    ["4. Бокс, автоматы, пускатель, счетчик","Установка двухполюсного дифф. Автомата на DIN-рейку до 40 А","шт.",700,"Работа"],
+    ["4. Бокс, автоматы, пускатель, счетчик","Установка двухполюсного УЗО на DIN-рейку до 40 А","шт.",700,"Работа"],
+    ["4. Бокс, автоматы, пускатель, счетчик","Установка однополюсного автомата на DIN-рейку до 63 А","шт.",350,"Работа"],
+    ["4. Бокс, автоматы, пускатель, счетчик","Установка DIN-рейки","шт.",350,"Работа"],
+    ["4. Бокс, автоматы, пускатель, счетчик","Установка клемника (ноль, заземление) на DIN-рейку","шт.",250,"Работа"],
+    ["4. Бокс, автоматы, пускатель, счетчик","Переделка существующего бокса с автоматами (1 автомат)","шт.",450,"Работа"],
+    /* 5 Разное */
+    ["5. Разное","Сверление отверстия под точечный светильник (гипсокартон,МДФ)","шт.",270,"Работа"],
+    ["5. Разное","Сверление отверстия под подразетник (гипсокартон,МДФ)","шт.",270,"Работа"],
+    ["5. Разное","Вырезание ниши под коробку распаячную 100х100 мм в ГКЛ.","шт.",480,"Работа"],
+    ["5. Разное","Вырезание ниши под коробку распаячную 80х80 мм в ГКЛ.","шт.",345,"Работа"],
+    ["5. Разное","Светление отверстия в керамической плитки под дюбель","шт.",150,"Работа"],
+    ["5. Разное","Установка шнура дюралайта в карниз.","м.п.",270,"Работа"],
+    ["5. Разное","Установка трубки домофона","шт.",675,"Работа"],
+    ["5. Разное","Монтаж крюка под люстру (бабочка)","шт.",450,"Работа"],
+    ["5. Разное","Замена ламп","шт.",52.5,"Работа"],
+    ["5. Разное","Установка дистанционного управления светом","шт.",2250,"Работа"],
+    ["5. Разное","Теплый пол монтаж","кв.м.",1575,"Работа"],
+    ["5. Разное","Расключение распаячной коробки (без пайки)","шт.",570,"Работа"],
+    ["5. Разное","Пайка распаячной коробки","шт.",750,"Работа"],
+    ["5. Разное","Переборка сущ. распаячной коробки","шт.",1080,"Работа"],
+    /* 6 Подсветка */
+    ["6. Светодиодная подсветка","Монтаж, пайка и подключение светодиодной ленты","м.п.",555,"Работа"],
+    ["6. Светодиодная подсветка","Замена перегоревшего участка светодиодной ленты","м.п.",675,"Работа"],
+    ["6. Светодиодная подсветка","Монтаж и подключение светодиодной ленты «дюралайт»","м.п.",450,"Работа"],
+    ["6. Светодиодная подсветка","Подключение и монтаж блока питания","шт.",1350,"Работа"],
+    ["6. Светодиодная подсветка","Установка IR,RF контроллера","шт.",795,"Работа"],
+    ["6. Светодиодная подсветка","Установка ал. профиля под светодиодную ленту","м.п.",240,"Работа"],
+    ["6. Светодиодная подсветка","Настройка нескольких пультов под один контроллер(без перепайки)программированием","шт.",240,"Работа"],
+    ["6. Светодиодная подсветка","Установка LED светильника типа амстронг","шт.",1350,"Работа"],
+    /* 7 Слаботочка */
+    ["7. Слаботочные системы (интернет, телевидение)","Прокладка кабеля телевизионного, интернет, телефонного (UTP, RG)","м.п.",80,"Работа"],
+    ["7. Слаботочные системы (интернет, телевидение)","Установка розетки под интернет","шт.",495,"Работа"],
+    ["7. Слаботочные системы (интернет, телевидение)","Установка розетки под TV","шт.",420,"Работа"],
+    ["7. Слаботочные системы (интернет, телевидение)","Установка розетки под телефон","шт.",420,"Работа"],
+    ["7. Слаботочные системы (интернет, телевидение)","Обжим интернет кабеля с наконечником RG45 (1 конец)","шт.",135,"Работа"],
+    ["7. Слаботочные системы (интернет, телевидение)","Соединение одной жилы кабеля с помощью скотчлока","шт.",60,"Работа"],
+    ["7. Слаботочные системы (интернет, телевидение)","Соединение телевизионного кабеля","шт.",180,"Работа"],
+  ].map(function(r,i){ return {id:i, category:r[0], name:r[1], unit:r[2], price:r[3], type:r[4]} });
+
+  // Локальное переопределение прайса (если импортировали .json)
+  try{ var ls = JSON.parse(localStorage.getItem(LS_PRICE)||'[]'); if(Array.isArray(ls) && ls.length) priceList = ls; }catch(e){}
+  function savePrice(){ try{ localStorage.setItem(LS_PRICE, JSON.stringify(priceList)); }catch(e){} }
+
+  /* ===== Таблица сметы ===== */
+  var tbody=$('#tbody');
+  function fmt(n){ var cur=$('#currency').value||'р.'; var num=Number(n||0); return new Intl.NumberFormat('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}).format(num)+' '+cur }
+  function cleanupNumber(x){ if(x==null) return 0; var s=(''+x).replace(/[\s\u00A0]/g,'').replace(',', '.').replace(/[^0-9.\-]/g,''); var v=parseFloat(s); return isNaN(v)?0:v; }
+
+  function addRow(it){
+    it=it||{};
+    var tr=document.createElement('tr');
+    tr.innerHTML =
+      '<td class="idx"></td>'+
+      '<td><input class="name" placeholder="Наименование" value="'+(it.name||'')+'"></td>'+
+      '<td style="max-width:90px"><input class="unit" placeholder="ед." value="'+(it.unit||'')+'"></td>'+
+      '<td style="max-width:120px">'+
+        '<select class="type">'+
+          '<option '+(it.type==='Работа'?'selected':'')+'>Работа</option>'+
+          '<option '+(it.type==='Материал'?'selected':'')+'>Материал</option>'+
+        '</select>'+
+      '</td>'+
+      '<td style="max-width:140px"><input class="price right" type="number" inputmode="decimal" step="0.01" min="0" value="'+(it.price||0)+'"></td>'+
+      '<td style="max-width:120px"><input class="qty right" type="number" inputmode="decimal" step="0.01" min="0" value="'+(it.qty||1)+'"></td>'+
+      '<td class="right sumCell">0</td>'+
+      '<td class="right"><button class="danger del">×</button></td>';
+    tbody.appendChild(tr);
+    tr.querySelectorAll('input,select').forEach(function(el){ el.addEventListener('input', function(){ calc(); saveState(); }); });
+    tr.querySelector('.del').addEventListener('click', function(){ tr.remove(); renumber(); calc(); saveState(); });
+    renumber(); calc(); saveState();
+  }
+  function renumber(){ $$('#tbody .idx').forEach(function(c,i){ c.textContent=i+1 }) }
+  function getRows(){ return $$('#tbody tr').map(function(tr){ return {
+    name: tr.querySelector('.name').value.trim(),
+    unit: tr.querySelector('.unit').value.trim(),
+    type: tr.querySelector('.type').value,
+    price: parseFloat(tr.querySelector('.price').value||0),
+    qty: parseFloat(tr.querySelector('.qty').value||0)
+  } }) }
+
+  function calc(){
+    var labor=0, mat=0;
+    $$('#tbody tr').forEach(function(tr){
+      var price=parseFloat(tr.querySelector('.price').value||0);
+      var qty=parseFloat(tr.querySelector('.qty').value||0);
+      var type=tr.querySelector('.type').value;
+      var sum=price*qty;
+      tr.querySelector('.sumCell').textContent=fmt(sum);
+      if(type==='Материал') mat+=sum; else labor+=sum;
+    });
+    $('#laborSum').textContent=fmt(labor);
+    $('#matSum').textContent=fmt(mat);
+
+    var laborDisc = (parseFloat(($('#laborDiscount').value||'').trim()||'0')/100) || 0;
+    var markup    = (parseFloat(($('#matMarkup').value||'').trim()||'0')/100) || 0;
+    var matDisc   = (parseFloat(($('#matDiscount').value||'').trim()||'0')/100) || 0;
+    var vat       = (parseFloat(($('#vat').value||'').trim()||'0')/100) || 0;
+
+    var laborAfter   = labor * (1 - laborDisc);
+    var matWithMk    = mat * (1 + markup);
+    var matAfter     = matWithMk * (1 - matDisc);
+
+    var subtotal = laborAfter + matAfter;      // до НДС
+    var withVat  = subtotal * (1 + vat);       // финал
+
+    $('#subtotal').textContent = fmt(subtotal);
+    $('#grand').textContent    = fmt(withVat);
+  }
+
+  function collect(){ return {
+    client: $('#client').value, site: $('#site').value, date: $('#date').value,
+    estimateNo: $('#estimateNo').value, validDays: $('#validDays').value,
+    currency: $('#currency').value, note: $('#note').value, items: getRows(),
+    totals: {
+      labor: $('#laborSum').textContent, materials: $('#matSum').textContent,
+      subtotal: $('#subtotal').textContent, grand: $('#grand').textContent,
+      laborDiscount: $('#laborDiscount').value,
+      matMarkup: $('#matMarkup').value, matDiscount: $('#matDiscount').value, vat: $('#vat').value
+    },
+    pro: { name: $('#proName').value || 'Станислав', phone: $('#proPhone').value || '+7 919 809 45 88' }
+  }}
+
+  function saveState(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(collect())); }catch(e){} }
+
+  function restore(){
+    var st; try{ st = JSON.parse(localStorage.getItem(LS_KEY)||'{}'); }catch(e){ st={} }
+    $('#date').value = st.date || new Date().toISOString().slice(0,10);
+    $('#currency').value = st.currency || 'р.';
+    if(st.client) $('#client').value=st.client;
+    if(st.site) $('#site').value=st.site;
+    if(st.estimateNo) $('#estimateNo').value=st.estimateNo;
+    if(st.validDays) $('#validDays').value=st.validDays;
+    if(st.note) $('#note').value=st.note;
+
+    $('#laborDiscount').value = (st.totals&&st.totals.laborDiscount)||'';
+    $('#matMarkup').value     = (st.totals&&st.totals.matMarkup)||'';
+    $('#matDiscount').value   = (st.totals&&st.totals.matDiscount)||'';
+    $('#vat').value           = (st.totals&&st.totals.vat)||'';
+
+    $('#proName').value    = (st.pro&&st.pro.name)||'Станислав';
+    $('#proPhone').value   = (st.pro&&st.pro.phone)||'+7 919 809 45 88';
+    $('#proNameView').textContent=$('#proName').value||'Станислав';
+    var tel = ($('#proPhone').value||'').replace(/\D+/g,'');
+    $('#proPhoneLink').href = tel ? ('tel:+'+tel) : '#';
+    $('#proPhoneLink').textContent = $('#proPhone').value||'+7 919 809 45 88';
+
+    if(st.items && st.items.length){ st.items.forEach(addRow) } else { addRow({name:'Установка подрозетника',unit:'шт.',type:'Работа',price:0,qty:1}); }
+    calc();
+  }
+
+  ['proName','proPhone'].forEach(function(id){
+    var el=document.getElementById(id);
+    el.addEventListener('input', function(){
+      if(id==='proName'){ document.getElementById('proNameView').textContent=el.value||'Станислав'; }
+      if(id==='proPhone'){
+        var tel = (el.value||'').replace(/\D+/g,'');
+        document.getElementById('proPhoneLink').href = tel ? ('tel:+'+tel) : '#';
+        document.getElementById('proPhoneLink').textContent = el.value||'+7 919 809 45 88';
+      }
+      saveState();
+    });
+  });
+
+  /* ===== Модалка прайса ===== */
+  var bd = $('#backdrop'), catGrid=$('#catGrid'), priceListEl=$('#priceList');
+  var catRow=$('#catRow'), pickRow=$('#pickRow'), currentCat='';
+
+  function openModal(){ bd.classList.add('show'); document.body.style.overflow='hidden'; showCategories(); $('#modalTitle').textContent='Прайс'; $('#modalSub').textContent='Выберите категорию'; }
+  function closeModal(){ bd.classList.remove('show'); document.body.style.overflow=''; }
+
+  document.addEventListener('click', function(e){
+    var t=e.target;
+    if(t.closest('#openPrice')) openModal();
+    if(t.closest('#closeModal') || t.closest('#closeModal2')) closeModal();
+  });
+  bd.addEventListener('click', function(e){ if(e.target===bd) closeModal(); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModal(); });
+
+  function categoryIcon(cat){ var n = (cat.match(/^\d+/)||[''])[0]; return ({'1':'⛏️','2':'🔌','3':'💡','4':'⚙️','5':'🧰','6':'✨','7':'📡'}[n]) || '📦'; }
+  function buildCategories(){
+    var map={}; priceList.forEach(function(it){ map[it.category]=(map[it.category]||0)+1; });
+    return Object.keys(map).sort(function(a,b){ var na=parseInt((a.match(/^\d+/)||['0'])[0]); var nb=parseInt((b.match(/^\d+/)||['0'])[0]); if(na!=nb) return na-nb; return a.localeCompare(b,'ru'); });
+  }
+  function showCategories(){
+    currentCat=''; catGrid.innerHTML='';
+    buildCategories().forEach(function(cat){
+      var el=document.createElement('div'); el.className='catCard';
+      var count=priceList.filter(function(x){return x.category===cat}).length;
+      el.innerHTML='<div class="catIcon">'+categoryIcon(cat)+'</div><div><div style="font-weight:700">'+cat+'</div><div class="muted">'+count+' поз.</div></div>';
+      el.addEventListener('click', function(){ currentCat=cat; catRow.style.display='none'; pickRow.style.display='block'; $('#modalSub').textContent=cat; renderPriceList(); });
+      catGrid.appendChild(el);
+    });
+    catRow.style.display='block'; pickRow.style.display='none';
+  }
+  document.getElementById('backToCats').addEventListener('click', showCategories);
+
+  function renderPriceList(){
+    var q=($('#search').value||'').toLowerCase(); var t=$('#filterType').value;
+    var list = priceList.map(function(it,idx){ return {it:it, idx:idx}; }).filter(function(row){
+      var x=row.it; var byCat=!currentCat || (x.category===currentCat); var byType=!t || x.type===t; var byQuery=(x.name||'').toLowerCase().indexOf(q)>-1; return byCat&&byType&&byQuery;
+    });
+    priceListEl.innerHTML='';
+    list.forEach(function(row){
+      var x=row.it; var i=row.idx;
+      var el=document.createElement('div'); el.className='item';
+      el.innerHTML=
+        '<input type="checkbox" class="pick" data-idx="'+i+'"/>'+
+        '<div class="grow">'+
+          '<div>'+x.name+'</div>'+
+          '<div class="muted" style="font-size:12px">'+x.type+' • ед.: '+x.unit+' • цена: '+x.price+'</div>'+
+        '</div>'+
+        '<div class="row" style="gap:6px">'+
+          '<input type="number" inputmode="decimal" min="0" step="0.01" value="'+x.price+'" class="priceEdit">'+
+          '<button class="primary add btn-sm">Добавить</button>'+
+        '</div>';
+      var priceEdit=el.querySelector('.priceEdit');
+      priceEdit.addEventListener('input', function(){ x.price=parseFloat(priceEdit.value||0); savePrice(); });
+      el.querySelector('.add').addEventListener('click', function(ev){ ev.stopPropagation(); addRow({name:x.name,unit:x.unit,type:x.type,price:x.price,qty:1}); });
+      el.addEventListener('click', function(ev){ var tag=(ev.target.tagName||'').toLowerCase(); if(tag==='input'||tag==='button') return; var ch=el.querySelector('.pick'); ch.checked=!ch.checked; updatePickCount(); });
+      el.querySelector('.pick').addEventListener('change', updatePickCount);
+      priceListEl.appendChild(el);
+    });
+    updatePickCount();
+  }
+  document.getElementById('search').addEventListener('input', renderPriceList);
+  document.getElementById('filterType').addEventListener('change', renderPriceList);
+  document.getElementById('selectAll').addEventListener('click', function(){ $$('#priceList .pick').forEach(function(ch){ ch.checked=true }); updatePickCount(); });
+  document.getElementById('clearAll').addEventListener('click', function(){ $$('#priceList .pick').forEach(function(ch){ ch.checked=false }); updatePickCount(); });
+  function updatePickCount(){ var count=$$('#priceList .pick:checked').length; $('#pickCount').textContent='Выбрано: '+count; $('#addSelected').textContent=count?('Добавить выбранные ('+count+')'):'Добавить выбранные' }
+
+  document.getElementById('addSelected').addEventListener('click', function(){
+    var picks = Array.prototype.slice.call(priceListEl.querySelectorAll('.pick:checked'));
+    if(!picks.length){ closeModal(); return; }
+    picks.forEach(function(ch){
+      var idx=parseInt(ch.getAttribute('data-idx')||'-1',10);
+      if(isNaN(idx)||idx<0||idx>=priceList.length) return;
+      var x=priceList[idx];
+      addRow({name:x.name, unit:x.unit, type:x.type, price:x.price, qty:1});
+    });
+    closeModal();
+  });
+
+  /* ===== Импорт материалов из XLS/XLSX/CSV (B,E,F,G начиная с 3 строки) ===== */
+  function importMaterialsFromWorkbook(wb){
+    var sheetName = wb.SheetNames[0];
+    var ws = wb.Sheets[sheetName];
+    var rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true});
+    if(!rows || rows.length<3){ alert('Не нашёл данные в листе.'); return; }
+    for(var r=2;r<rows.length;r++){
+      var row = rows[r]||[];
+      var name = (row[1]||'').toString().trim(); // B
+      var qty  = cleanupNumber(row[4]);          // E
+      var price= cleanupNumber(row[5]);          // F
+      var sum  = cleanupNumber(row[6]);          // G
+      if(!name || qty<=0) continue;
+      if((!price || price==0) && (sum>0 && qty>0)){ price = sum/qty; }
+      addRow({name:name, unit:'', type:'Материал', price:(price || 0), qty:(qty || 1)});
+    }
+    calc(); saveState();
+    alert('Материалы импортированы.');
+  }
+
+  document.getElementById('importMaterials').addEventListener('click', function(){
+    var input=document.createElement('input');
+    input.type='file'; input.accept='.xls,.xlsx,.csv';
+    input.onchange=function(e){
+      var file=e.target.files[0]; if(!file) return;
+      var ext = (file.name.split('.').pop()||'').toLowerCase();
+      var reader = new FileReader();
+      if(window.XLSX){
+        reader.onload = function(ev){
+          var data = ev.target.result;
+          var wb = XLSX.read(data, {type:'array'});
+          importMaterialsFromWorkbook(wb);
+        };
+        reader.readAsArrayBuffer(file);
+      }else{
+        if(ext==='csv'){
+          reader.onload=function(ev){
+            var text = ev.target.result||'';
+            var lines = text.split(/\r?\n/);
+            for(var r=2;r<lines.length;r++){
+              var cells = lines[r].split(';');
+              if(cells.length<7) cells = lines[r].split(',');
+              var name = (cells[1]||'').trim();
+              var qty  = cleanupNumber(cells[4]);
+              var price= cleanupNumber(cells[5]);
+              var sum  = cleanupNumber(cells[6]);
+              if(!name || qty<=0) continue;
+              if((!price || price==0) && sum>0 && qty>0){ price = sum/qty; }
+              addRow({name:name, unit:'', type:'Материал', price:(price||0), qty:(qty||1)});
+            }
+            calc(); saveState();
+            alert('Материалы импортированы из CSV.');
+          };
+          reader.readAsText(file,'utf-8');
+        }else{
+          alert('Для .xls/.xlsx нужен интернет, чтобы загрузить модуль XLSX. Либо сохраните корзину как CSV.');
+        }
+      }
+    };
+    input.click();
+  });
+
+  /* ===== ТКП ===== */
+function buildTKPHtml(d, rows, sums){
+  var cur = $('#currency').value || 'р.';
+  var head = '<!doctype html><html><head><meta charset="utf-8"><title>ТКП</title>'
+    + '<style>'
+    + 'body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:20px}'
+    + 'table{border-collapse:collapse;width:100%;table-layout:fixed}'
+    + 'th,td{border:1px solid #ccc;padding:6px;text-align:left;vertical-align:top}'
+    + 'th.num,td.num{width:44px;text-align:center;white-space:nowrap}'
+    + 'th.name,td.name{word-break:break-word}'
+    + 'th.unit,td.unit{width:72px;white-space:nowrap}'
+    + 'th.qty,td.qty{width:86px;white-space:nowrap;text-align:right}'
+    + 'th.price,td.price{width:150px;white-space:nowrap;text-align:right}'
+    + 'th.sum,td.sum{width:180px;white-space:nowrap;text-align:right}'
+    + '.hdr{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}'
+    + '.badge{display:inline-block;padding:6px 10px;border:1px solid #c7d2fe;background:#eef2ff;border-radius:999px}'
+    + '</style></head><body>';
+
+  var tel=(d.pro.phone||'').replace(/\D+/g,'');
+  var hdr = '<div class="hdr"><div>'
+    + '<h2 style="margin:0 0 6px">Техническо-коммерческое предложение</h2>'
+    + '<div style="color:#555">Дата: '+(d.date||'')+' • № '+(d.estimateNo||'-')+' • Срок действия: '+(d.validDays?d.validDays+' дней':'—')+'</div>'
+    + '<div>Клиент: <b>'+(d.client||'')+'</b> • Объект: <b>'+(d.site||'')+'</b></div>'
+    + '</div><div><div class="badge">Исполнитель</div><div style="margin-top:6px"><b>'+(d.pro.name||'Станислав')
+    + '</b><br><a href="'+(tel?('tel:+'+tel):'#')+'">'+(d.pro.phone||'+7 919 809 45 88')+'</a></div></div></div><br>';
+
+  var visibleRows = rows.filter(function(r){ return r.qty>0 && r.price>=0; });
+
+  var tableRows = visibleRows.map(function(r){
+    return '<tr>'
+      + '<td class="num">'+r.i+'</td>'
+      + '<td class="name">'+r.name+'</td>'
+      + '<td class="unit">'+(r.unit||'')+'</td>'
+      + '<td class="qty">'+r.qty+'</td>'
+      + '<td class="price">'+r.price.toFixed(2)+'&nbsp;'+cur+'</td>'
+      + '<td class="sum">'+r.sum.toFixed(2)+'&nbsp;'+cur+'</td>'
+      + '</tr>';
+  }).join('');
+
+  var table = '<table>'
+    + '<colgroup>'
+    +   '<col style="width:44px">'
+    +   '<col>'                      /* Наименование — тянется и переносится */
+    +   '<col style="width:72px">'
+    +   '<col style="width:86px">'
+    +   '<col style="width:150px">'  /* Цена — шире, без переноса */
+    +   '<col style="width:180px">'  /* Сумма — шире, без переноса */
+    + '</colgroup>'
+    + '<thead><tr>'
+    +   '<th class="num">#</th>'
+    +   '<th class="name">Наименование</th>'
+    +   '<th class="unit">Ед.</th>'
+    +   '<th class="qty">Кол-во</th>'
+    +   '<th class="price">Цена</th>'
+    +   '<th class="sum">Сумма</th>'
+    + '</tr></thead><tbody>'+tableRows+'</tbody></table>';
+
+  var footer = '<br><table style="width:auto;border-collapse:collapse">'
+    + '<tr><td style="border:1px solid #ccc;padding:6px">Работы</td><td style="border:1px solid #ccc;padding:6px;white-space:nowrap;text-align:right">'
+    + sums.labor.toFixed(2)+'&nbsp;'+cur+'</td></tr>';
+
+  if(sums.laborDiscount>0){
+    footer += '<tr><td style="border:1px solid #ccc;padding:6px">Скидка на работы</td>'
+      + '<td style="border:1px solid #ccc;padding:6px;white-space:nowrap;text-align:right">- '
+      + sums.laborDiscountAmount.toFixed(2)+'&nbsp;'+cur+' ('+(sums.laborDiscount*100).toFixed(0)+'%)</td></tr>';
+  }
+
+  footer += '<tr><td style="border:1px solid #ccc;padding:6px">Материалы</td><td style="border:1px solid #ccc;padding:6px;white-space:nowrap;text-align:right">'
+    + sums.mat.toFixed(2)+'&nbsp;'+cur+'</td></tr>';
+
+  if(sums.markup>0){
+    footer += '<tr><td style="border:1px solid #ccc;padding:6px">Наценка на материалы</td>'
+      + '<td style="border:1px solid #ccc;padding:6px;white-space:nowrap;text-align:right">'
+      + sums.matMarkupAmount.toFixed(2)+'&nbsp;'+cur+' ('+(sums.markup*100).toFixed(0)+'%)</td></tr>';
+  }
+  if(sums.matDiscount>0){
+    footer += '<tr><td style="border:1px solid #ccc;padding:6px">Скидка на материалы</td>'
+      + '<td style="border:1px solid #ccc;padding:6px;white-space:nowrap;text-align:right">- '
+      + sums.matDiscountAmount.toFixed(2)+'&nbsp;'+cur+' ('+(sums.matDiscount*100).toFixed(0)+'%)</td></tr>';
+  }
+
+  footer += '<tr><td style="border:1px solid #ccc;padding:6px"><b>Итого (до НДС)</b></td>'
+    + '<td style="border:1px solid #ccc;padding:6px;white-space:nowrap;text-align:right"><b>'
+    + sums.subtotal.toFixed(2)+'&nbsp;'+cur+'</b></td></tr>';
+
+  if(sums.vat>0){
+    footer += '<tr><td style="border:1px solid #ccc;padding:6px">НДС/VAT</td>'
+      + '<td style="border:1px solid #ccc;padding:6px;white-space:nowrap;text-align:right">'
+      + sums.vatAmount.toFixed(2)+'&nbsp;'+cur+' ('+(sums.vat*100).toFixed(0)+'%)</td></tr>';
+  }
+
+  footer += '<tr><th style="border:1px solid #ccc;padding:6px">Итого к оплате</th>'
+    + '<th style="border:1px solid #ccc;padding:6px;white-space:nowrap;text-align:right">'
+    + sums.withVat.toFixed(2)+'&nbsp;'+cur+'</th></tr></table>';
+
+  if(d.note){
+    footer += '<p><b>Примечание:</b><br>'+d.note.replace(/\n/g,'<br>')+'</p>';
+  }
+  return head + hdr + table + footer + '</body></html>';
+}
+
+  function computeTKPSums(rows){
+    var labor=0, mat=0;
+    rows.forEach(function(r){ if(r.type==='Материал') mat+=r.sum; else labor+=r.sum; });
+
+    var laborDiscount = (parseFloat(($('#laborDiscount').value||'').trim()||'0')/100) || 0;
+    var markup        = (parseFloat(($('#matMarkup').value||'').trim()||'0')/100) || 0;
+    var matDiscount   = (parseFloat(($('#matDiscount').value||'').trim()||'0')/100) || 0;
+    var vat           = (parseFloat(($('#vat').value||'').trim()||'0')/100) || 0;
+
+    var laborAfter         = labor * (1 - laborDiscount);
+    var laborDiscountAmount= labor - laborAfter;
+
+    var matWithMarkup      = mat * (1 + markup);
+    var matMarkupAmount    = matWithMarkup - mat;
+
+    var matAfterMatDisc    = matWithMarkup * (1 - matDiscount);
+    var matDiscountAmount  = matWithMarkup - matAfterMatDisc;
+
+    var subtotal = laborAfter + matAfterMatDisc; // до НДС
+
+    var withVat  = subtotal * (1 + vat);
+    var vatAmount= withVat - subtotal;
+
+    return {
+      labor: labor, laborDiscount: laborDiscount, laborDiscountAmount: laborDiscountAmount,
+      mat: mat, markup: markup, matMarkupAmount: matMarkupAmount,
+      matDiscount: matDiscount, matDiscountAmount: matDiscountAmount,
+      subtotal: subtotal, vat: vat, vatAmount: vatAmount, withVat: withVat
+    };
+  }
+
+  function getRowsForTKP(){
+    var d=collect();
+    var rows=d.items.map(function(it,i){ return {i:i+1,name:it.name,unit:it.unit||'',qty:it.qty||0,price:it.price||0,sum:(it.qty||0)*(it.price||0),type:it.type} });
+    return {d:d, rows:rows, sums:computeTKPSums(rows)};
+  }
+
+  function openTKPWindow(){
+    var data=getRowsForTKP();
+    var html=buildTKPHtml(data.d, data.rows, data.sums);
+    var w=window.open('','_blank'); if(!w){ alert('Разрешите всплывающие окна для ТКП'); return; }
+    w.document.write(html); w.document.close(); w.focus(); w.print();
+  }
+
+  function downloadTKP(){
+    var data=getRowsForTKP();
+    var html=buildTKPHtml(data.d, data.rows, data.sums);
+    var blob=new Blob([html], {type:'text/html;charset=utf-8'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    var cleanClient=(data.d.client||'TKP').replace(/[^\w\u0400-\u04FF]+/g,'_');
+    a.download='TKP_'+cleanClient+'.html';
+    a.href=url; a.click(); URL.revokeObjectURL(url);
+  }
+
+  /* Кнопки */
+  document.addEventListener('click', function(e){
+    var t=e.target;
+    if(t.closest('#addRow')){ addRow({qty:1,type:'Работа'}); renumber(); calc(); saveState(); }
+    if(t.closest('#btnTKP')) openTKPWindow();
+    if(t.closest('#btnSaveTKP')) downloadTKP();
+    if(t.closest('#btnPrintAll')) window.print();
+    if(t.closest('#btnClear')){ if(confirm('Очистить смету?')){ localStorage.removeItem(LS_KEY); location.reload(); } }
+    if(t.closest('#exportPrice')){
+      var blob=new Blob([JSON.stringify(priceList,null,2)],{type:'application/json'});
+      var url=URL.createObjectURL(blob); var a=document.createElement('a');
+      a.href=url; a.download='electro_price_2025.json'; a.click(); URL.revokeObjectURL(url);
+    }
+    if(t.closest('#importPrice')){
+      var inp=document.createElement('input'); inp.type='file'; inp.accept='application/json';
+      inp.onchange=function(ev){ var file=ev.target.files[0]; if(!file) return; var reader=new FileReader();
+        reader.onload=function(){ try{ priceList=JSON.parse(reader.result); savePrice(); alert('Прайс импортирован.'); }catch(err){ alert('Ошибка импорта: '+err.message) } };
+        reader.readAsText(file);
+      }; inp.click();
+    }
+  });
+
+  ['client','site','date','estimateNo','validDays','currency','note','laborDiscount','matMarkup','matDiscount','vat'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.addEventListener('input', function(){ calc(); saveState(); });
+  });
+
+  restore();
+})();
+</script>
+</body>
+</html>
