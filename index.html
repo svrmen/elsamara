@@ -36,6 +36,7 @@ button.danger{background:#fff;border-color:#f4c7c7;color:#b91c1c}
 table{width:100%;border-collapse:collapse}
 th,td{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-align:middle}
 .right{text-align:right}
+input.right{ text-align:right }
 .pill{font-size:12px;border:1px solid #cfd6e3;padding:2px 8px;border-radius:999px;color:var(--muted);background:#fff}
 
 /* Модалка */
@@ -55,6 +56,11 @@ th,td{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-a
 .priceEdit{width:88px}
 .note{min-height:74px}
 a.tel{color:inherit;text-decoration:none}
+#items .unitCell{width:90px}
+#items .typeCell{width:120px}
+#items .priceCell{width:140px}
+#items .qtyCell{width:120px}
+#items .actionsCell{width:40px}
 
 /* Итоги */
 .totals{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -80,8 +86,23 @@ a.tel{color:inherit;text-decoration:none}
   input,select,textarea,button{min-height:44px;font-size:16px}
   button.btn-sm{min-height:38px}
   input[type="checkbox"]{width:20px;height:20px}
-  table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
-  thead, tbody{min-width:640px}
+  #items thead{display:none}
+  #items tbody{display:grid;gap:12px}
+  #items tbody tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:12px;border:1px solid var(--line);border-radius:14px;background:#fff}
+  #items tbody tr > td{border:none;padding:0;display:flex;flex-direction:column;gap:6px;min-width:0}
+  #items tbody tr > td::before{content:attr(data-label);font-size:12px;font-weight:600;color:var(--muted);text-transform:none}
+  #items tbody tr > td[data-label=""]::before{content:'';display:none}
+  #items tbody tr > td.cell-full{grid-column:1/-1}
+  #items tbody tr > td.idxCell{grid-column:1;order:1;font-size:18px;font-weight:700;line-height:1}
+  #items tbody tr > td.idxCell::before{font-size:12px;font-weight:600}
+  #items tbody tr > td.actionsCell{grid-column:2;order:2;align-items:flex-end;justify-self:end}
+  #items tbody tr > td.nameCell{order:3}
+  #items tbody tr > td.unitCell{order:4}
+  #items tbody tr > td.typeCell{order:5}
+  #items tbody tr > td.priceCell{order:6}
+  #items tbody tr > td.qtyCell{order:7}
+  #items tbody tr > td.sumCell{order:8;align-items:flex-end;font-weight:600}
+  #items tbody tr > td :is(input,select){width:100%}
   .modal{width:100%;max-width:none;height:96vh;max-height:96vh;border-radius:12px}
   .modalBody{grid-template-rows:auto 1fr}
   .list{height:calc(96vh - 210px)}
@@ -347,19 +368,19 @@ a.tel{color:inherit;text-decoration:none}
     it=it||{};
     var tr=document.createElement('tr');
     tr.innerHTML =
-      '<td class="idx"></td>'+
-      '<td><input class="name" placeholder="Наименование" value="'+(it.name||'')+'"></td>'+
-      '<td style="max-width:90px"><input class="unit" placeholder="ед." value="'+(it.unit||'')+'"></td>'+
-      '<td style="max-width:120px">'+
+      '<td class="idx idxCell" data-label="#"></td>'+
+      '<td class="nameCell cell-full" data-label="Наименование"><input class="name" placeholder="Наименование" value="'+(it.name||'')+'"></td>'+
+      '<td class="unitCell" data-label="Ед."><input class="unit" placeholder="ед." value="'+(it.unit||'')+'"></td>'+
+      '<td class="typeCell" data-label="Тип">'+
         '<select class="type">'+
           '<option '+(it.type==='Работа'?'selected':'')+'>Работа</option>'+
           '<option '+(it.type==='Материал'?'selected':'')+'>Материал</option>'+
         '</select>'+
       '</td>'+
-      '<td style="max-width:140px"><input class="price right" type="number" inputmode="decimal" step="0.01" min="0" value="'+(it.price||0)+'"></td>'+
-      '<td style="max-width:120px"><input class="qty right" type="number" inputmode="decimal" step="0.01" min="0" value="'+(it.qty||1)+'"></td>'+
-      '<td class="right sumCell">0</td>'+
-      '<td class="right"><button class="danger del">×</button></td>';
+      '<td class="priceCell" data-label="Цена"><input class="price right" type="number" inputmode="decimal" step="0.01" min="0" value="'+(it.price||0)+'"></td>'+
+      '<td class="qtyCell" data-label="Кол-во"><input class="qty right" type="number" inputmode="decimal" step="0.01" min="0" value="'+(it.qty||1)+'"></td>'+
+      '<td class="sumCell right cell-full" data-label="Сумма">0</td>'+
+      '<td class="actionsCell right" data-label=""><button class="danger del">×</button></td>';
     tbody.appendChild(tr);
     tr.querySelectorAll('input,select').forEach(function(el){ el.addEventListener('input', function(){ calc(); saveState(); }); });
     tr.querySelector('.del').addEventListener('click', function(){ tr.remove(); renumber(); calc(); saveState(); });
