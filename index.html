@@ -26,6 +26,8 @@ button.danger{background:#fff;border-color:#f4c7c7;color:#b91c1c}
 .btn-sm{padding:6px 8px;border-radius:8px;font-size:13px}
 .row{display:flex;gap:8px;align-items:center}
 .row.wrap{flex-wrap:wrap}
+.actionsRow{gap:8px;flex-wrap:wrap}
+.contactGrid{gap:6px;min-width:260px}
 .grow{flex:1}
 .muted{color:var(--muted)}
 .chip{display:inline-flex;gap:6px;align-items:center;padding:6px 10px;background:var(--chip);border:1px solid #dbe3ff;border-radius:999px;font-weight:600}
@@ -62,15 +64,24 @@ a.tel{color:inherit;text-decoration:none}
 
 /* === MOBILE PATCH === */
 @media (max-width: 740px){
-  .wrap{padding:10px}
+  body{font-size:15px}
+  .wrap{padding:12px}
+  .grid{gap:10px}
   h1{font-size:18px}
   .card{padding:12px}
   .row{gap:6px}
+  .stack-sm{flex-direction:column !important;align-items:stretch !important}
+  .stack-sm > *{flex:1 1 auto;width:100%;min-width:0;max-width:100% !important}
+  .contactGrid{grid-template-columns:1fr;min-width:0;width:100%}
+  .contactGrid .chip{justify-content:center}
+  .actionsRow{align-items:stretch;justify-content:flex-start}
+  .actionsRow button{flex:1 1 48%}
+  .chip{width:100%;justify-content:center}
   input,select,textarea,button{min-height:44px;font-size:16px}
   button.btn-sm{min-height:38px}
   input[type="checkbox"]{width:20px;height:20px}
   table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
-  thead, tbody{min-width:760px}
+  thead, tbody{min-width:640px}
   .modal{width:100%;max-width:none;height:96vh;max-height:96vh;border-radius:12px}
   .modalBody{grid-template-rows:auto 1fr}
   .list{height:calc(96vh - 210px)}
@@ -85,7 +96,7 @@ a.tel{color:inherit;text-decoration:none}
 <div class="wrap grid" id="app">
   <!-- Шапка -->
   <div class="card">
-    <div class="row wrap" style="align-items:center">
+    <div class="row wrap stack-sm" style="align-items:center">
       <div class="row grow">
         <div class="avatar">С</div>
         <div>
@@ -93,7 +104,7 @@ a.tel{color:inherit;text-decoration:none}
           <div class="muted">Быстрый расчёт на объекте • офлайн</div>
         </div>
       </div>
-      <div class="grid" style="gap:6px;min-width:260px">
+      <div class="grid contactGrid">
         <div class="chip">📞 <a class="tel" id="proPhoneLink" href="tel:+79198094588">+7 919 809 45 88</a></div>
         <div class="chip">👤 <span id="proNameView">Станислав</span></div>
       </div>
@@ -103,18 +114,18 @@ a.tel{color:inherit;text-decoration:none}
   <!-- Реквизиты -->
   <div class="card grid">
     <h2>Данные клиента и исполнителя</h2>
-    <div class="row wrap">
+    <div class="row wrap stack-sm">
       <input class="grow" id="client" placeholder="Клиент" />
       <input class="grow" id="site" placeholder="Адрес / объект" />
       <input style="max-width:180px" id="date" type="date" />
       <input style="max-width:120px" id="currency" placeholder="Валюта" value="р." />
     </div>
-    <div class="row wrap">
+    <div class="row wrap stack-sm">
       <input class="grow" id="estimateNo" placeholder="№ сметы (необязательно)" />
       <input class="grow" id="validDays" type="number" min="0" placeholder="Срок действия, дней (например 7)" />
     </div>
     <div class="divider"></div>
-    <div class="row wrap">
+    <div class="row wrap stack-sm">
       <input class="grow" id="proName" value="Станислав" placeholder="Исполнитель — имя" />
       <input class="grow" id="proPhone" value="+7 919 809 45 88" placeholder="Исполнитель — телефон" />
     </div>
@@ -122,9 +133,9 @@ a.tel{color:inherit;text-decoration:none}
 
   <!-- Таблица позиций -->
   <div class="card grid">
-    <div class="row wrap">
+    <div class="row wrap stack-sm">
       <h2 class="grow">Позиции сметы</h2>
-      <div class="row" style="gap:8px;flex-wrap:wrap">
+      <div class="row actionsRow">
         <button id="addRow">+ Позиция</button>
         <button id="openPrice">Из прайса</button>
         <button id="importMaterials">Импорт материалов (XLS)</button>
@@ -153,7 +164,7 @@ a.tel{color:inherit;text-decoration:none}
       <tbody id="tbody"></tbody>
     </table>
 
-    <div class="row wrap">
+    <div class="row wrap stack-sm">
       <textarea id="note" class="note grow" placeholder="Примечание для ТКП (появится в самом конце, например: «Для начала работ требуется предоплата на закупку материалов…»)"></textarea>
     </div>
   </div>
@@ -165,7 +176,7 @@ a.tel{color:inherit;text-decoration:none}
       <div class="block">
         <div class="line"><span>Работы</span><b id="laborSum">0</b></div>
         <div class="line"><span>Материалы</span><b id="matSum">0</b></div>
-        <div class="row wrap" style="margin-top:8px">
+        <div class="row wrap stack-sm" style="margin-top:8px">
           <input id="laborDiscount" placeholder="Скидка на работы, %" style="max-width:200px">
           <input id="matMarkup" placeholder="Наценка на материалы, %" style="max-width:200px">
           <input id="matDiscount" placeholder="Скидка на материалы, %" style="max-width:200px">
@@ -194,7 +205,7 @@ a.tel{color:inherit;text-decoration:none}
           <div id="catGrid"></div>
         </div>
         <div id="pickRow" style="display:none">
-          <div class="row wrap">
+          <div class="row wrap stack-sm">
             <button id="backToCats" class="ghost btn-sm">← Категории</button>
             <input id="search" class="grow" placeholder="Поиск…" />
             <select id="filterType" style="max-width:160px">
