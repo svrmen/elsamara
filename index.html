@@ -124,6 +124,7 @@ a.tel{color:inherit;text-decoration:none}
       <select id="savedProjects" style="min-width:240px;max-width:320px">
         <option value="">Сохранённые проекты</option>
       </select>
+      <button id="btnDeleteProject" class="danger" title="Удалить выбранный проект">✖</button>
       <button id="btnSaveProject" class="primary">Сохранить проект</button>
       <button id="btnDownloadProject">Скачать проект</button>
       <button id="btnImportProject">Загрузить из файла</button>
@@ -294,6 +295,13 @@ a.tel{color:inherit;text-decoration:none}
       console.warn('Не удалось сохранить проекты:', error);
     }
   };
+  const updateDeleteProjectButton = () => {
+    const select = byId('savedProjects');
+    const btn = byId('btnDeleteProject');
+    if(!btn || !select) return;
+    const hasSelection = select.value !== '' && !Number.isNaN(parseInt(select.value, 10));
+    btn.disabled = !hasSelection;
+  };
   const refreshSavedProjects = () => {
     const select = byId('savedProjects');
     if (!select) return;
@@ -311,6 +319,7 @@ a.tel{color:inherit;text-decoration:none}
     });
 
     select.disabled = !saved.length;
+    updateDeleteProjectButton();
   };
   const getAdjustments = () => ({
     laborDiscount: readPercentValue('laborDiscount'),
@@ -632,6 +641,25 @@ a.tel{color:inherit;text-decoration:none}
     persistSavedProjects(projects);
     refreshSavedProjects();
     alert('Проект сохранён на сайте.');
+  }
+
+  function deleteSavedProject(){
+    const select = byId('savedProjects');
+    const idx = parseInt(select?.value || '', 10);
+    if(Number.isNaN(idx)) return;
+
+    const projects = getSavedProjects();
+    const target = projects[idx];
+    if(!target) return;
+
+    const label = target.name || `Проект ${idx + 1}`;
+    if(!confirm(`Удалить проект «${label}»?`)) return;
+
+    projects.splice(idx, 1);
+    persistSavedProjects(projects);
+    select.value = '';
+    refreshSavedProjects();
+    alert('Проект удалён.');
   }
 
   function downloadProject(){
@@ -1002,6 +1030,7 @@ function buildTKPHtml(d, rows, sums){
     if(t.closest('#btnTKP')) openTKPWindow();
     if(t.closest('#btnSaveTKP')) downloadTKP();
     if(t.closest('#btnSaveProject')) saveProjectLocally();
+    if(t.closest('#btnDeleteProject')) deleteSavedProject();
     if(t.closest('#btnDownloadProject')) downloadProject();
     if(t.closest('#btnImportProject')) importProjectFromFile();
     if(t.closest('#btnPrintAll')) window.print();
@@ -1032,6 +1061,7 @@ function buildTKPHtml(d, rows, sums){
   if(savedProjectsSelect){
     savedProjectsSelect.addEventListener('change', () => {
       const idx = parseInt(savedProjectsSelect.value, 10);
+      updateDeleteProjectButton();
       if(Number.isNaN(idx)) return;
       const saved = getSavedProjects();
       const picked = saved[idx];
