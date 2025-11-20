@@ -120,6 +120,15 @@ a.tel{color:inherit;text-decoration:none}
       <div class="muted" style="font-size:13px">Выбор применит типовые позиции из прайса.</div>
     </div>
     <div class="row wrap">
+      <input class="grow" id="projectName" placeholder="Название проекта" value="Проект" />
+      <select id="savedProjects" style="min-width:240px;max-width:320px">
+        <option value="">Сохранённые проекты</option>
+      </select>
+      <button id="btnSaveProject" class="primary">Сохранить проект</button>
+      <button id="btnDownloadProject">Скачать проект</button>
+      <button id="btnImportProject">Загрузить из файла</button>
+    </div>
+    <div class="row wrap">
       <input class="grow" id="estimateNo" placeholder="№ сметы (необязательно)" />
       <input class="grow" id="validDays" type="number" min="0" placeholder="Срок действия, дней (например 7)" />
     </div>
@@ -234,6 +243,7 @@ a.tel{color:inherit;text-decoration:none}
   const $$ = (sel) => Array.from(doc.querySelectorAll(sel));
   const byId = doc.getElementById.bind(doc);
   const LS_KEY = 'electro_estimate_v1';
+  const LS_PROJECTS = 'electro_saved_projects_v1';
   const LS_PRICE = 'electro_price_list_2025_02';
   const DEFAULT_PRO = { name: 'Станислав', phone: '+7 919 809 45 88' };
   const PERCENT_FIELDS = ['laborDiscount', 'matMarkup', 'matDiscount', 'vat'];
@@ -267,6 +277,40 @@ a.tel{color:inherit;text-decoration:none}
     const raw = readInputValue(id).replace(/,/g, '.');
     const number = Number(raw);
     return Number.isFinite(number) ? number / 100 : 0;
+  };
+  const getSavedProjects = () => {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(LS_PROJECTS) || '[]');
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      console.warn('Не удалось прочитать сохранённые проекты:', error);
+      return [];
+    }
+  };
+  const persistSavedProjects = (list) => {
+    try {
+      localStorage.setItem(LS_PROJECTS, JSON.stringify(list));
+    } catch (error) {
+      console.warn('Не удалось сохранить проекты:', error);
+    }
+  };
+  const refreshSavedProjects = () => {
+    const select = byId('savedProjects');
+    if (!select) return;
+
+    const saved = getSavedProjects();
+    select.innerHTML = '<option value="">Сохранённые проекты</option>';
+
+    saved.forEach((project, idx) => {
+      const option = doc.createElement('option');
+      option.value = String(idx);
+      const dateLabel = project.savedAt || project.data?.savedAt;
+      const formattedDate = dateLabel ? new Date(dateLabel).toLocaleString('ru-RU') : '';
+      option.textContent = project.name ? `${project.name}${formattedDate ? ' — ' + formattedDate : ''}` : `Проект ${idx + 1}`;
+      select.appendChild(option);
+    });
+
+    select.disabled = !saved.length;
   };
   const getAdjustments = () => ({
     laborDiscount: readPercentValue('laborDiscount'),
@@ -506,6 +550,7 @@ a.tel{color:inherit;text-decoration:none}
   }
 
   function collect(){ return {
+    projectName: readInputValue('projectName') || 'Проект',
     client: readInputValue('client'),
     site: readInputValue('site'),
     date: byId('date').value,
@@ -533,6 +578,40 @@ a.tel{color:inherit;text-decoration:none}
 
   function saveState(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(collect())); }catch(e){} }
 
+  function applyState(st){
+    const state = st || {};
+    byId('projectName').value = state.projectName || 'Проект';
+    byId('date').value = state.date || new Date().toISOString().slice(0,10);
+    byId('currency').value = state.currency || 'р.';
+    byId('wallMaterial').value = state.wallMaterial || '';
+    lastSelectedWallMaterial = byId('wallMaterial').value || '';
+    if(state.client) byId('client').value=state.client;
+    if(state.site) byId('site').value=state.site;
+    if(state.estimateNo) byId('estimateNo').value=state.estimateNo;
+    if(state.validDays) byId('validDays').value=state.validDays;
+    if(state.note) byId('note').value=state.note;
+
+    byId('laborDiscount').value = (state.totals&&state.totals.laborDiscount)||'';
+    byId('matMarkup').value     = (state.totals&&state.totals.matMarkup)||'';
+    byId('matDiscount').value   = (state.totals&&state.totals.matDiscount)||'';
+    byId('vat').value           = (state.totals&&state.totals.vat)||'';
+
+    byId('proName').value  = (state.pro&&state.pro.name)  || DEFAULT_PRO.name;
+    byId('proPhone').value = (state.pro&&state.pro.phone) || DEFAULT_PRO.phone;
+    updateProContactViews(byId('proName').value, byId('proPhone').value);
+
+    tbody.innerHTML='';
+    const hasSavedItems = state.items && state.items.length;
+    if(hasSavedItems){
+      state.items.forEach(addRow);
+    } else if(state.wallMaterial){
+      applyWallTemplate(state.wallMaterial, { silent: true });
+    } else {
+      addRow({name:'Установка подрозетника',unit:'шт.',type:'Работа',price:0,qty:1});
+    }
+    calc();
+  }
+
   function restore(){
     let st = {};
     try {
@@ -540,34 +619,58 @@ a.tel{color:inherit;text-decoration:none}
     } catch (error) {
       console.warn('Не удалось восстановить состояние сметы:', error);
     }
-    byId('date').value = st.date || new Date().toISOString().slice(0,10);
-    byId('currency').value = st.currency || 'р.';
-    byId('wallMaterial').value = st.wallMaterial || '';
-    lastSelectedWallMaterial = byId('wallMaterial').value || '';
-    if(st.client) byId('client').value=st.client;
-    if(st.site) byId('site').value=st.site;
-    if(st.estimateNo) byId('estimateNo').value=st.estimateNo;
-    if(st.validDays) byId('validDays').value=st.validDays;
-    if(st.note) byId('note').value=st.note;
+    applyState(st);
+    refreshSavedProjects();
+  }
 
-    byId('laborDiscount').value = (st.totals&&st.totals.laborDiscount)||'';
-    byId('matMarkup').value     = (st.totals&&st.totals.matMarkup)||'';
-    byId('matDiscount').value   = (st.totals&&st.totals.matDiscount)||'';
-    byId('vat').value           = (st.totals&&st.totals.vat)||'';
+  function saveProjectLocally(){
+    const name = readInputValue('projectName') || 'Проект';
+    const data = collect();
+    const savedAt = new Date().toISOString();
+    const projects = getSavedProjects().filter((p) => p.name !== name);
+    projects.unshift({ name, savedAt, data: { ...data, savedAt } });
+    persistSavedProjects(projects);
+    refreshSavedProjects();
+    alert('Проект сохранён на сайте.');
+  }
 
-    byId('proName').value  = (st.pro&&st.pro.name)  || DEFAULT_PRO.name;
-    byId('proPhone').value = (st.pro&&st.pro.phone) || DEFAULT_PRO.phone;
-    updateProContactViews(byId('proName').value, byId('proPhone').value);
+  function downloadProject(){
+    const name = readInputValue('projectName') || 'Проект';
+    const savedAt = new Date().toISOString();
+    const payload = { name, savedAt, data: { ...collect(), savedAt } };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = doc.createElement('a');
+    const cleanName = name.replace(/[^\w\u0400-\u04FF]+/g, '_');
+    a.download = `electro_project_${cleanName || 'estimate'}.json`;
+    a.href = url; a.click(); URL.revokeObjectURL(url);
+  }
 
-    const hasSavedItems = st.items && st.items.length;
-    if(hasSavedItems){
-      st.items.forEach(addRow);
-    } else if(st.wallMaterial){
-      applyWallTemplate(st.wallMaterial, { silent: true });
-    } else {
-      addRow({name:'Установка подрозетника',unit:'шт.',type:'Работа',price:0,qty:1});
-    }
-    calc();
+  function importProjectFromFile(){
+    const inp = doc.createElement('input');
+    inp.type = 'file';
+    inp.accept = 'application/json';
+    inp.onchange = function(ev){
+      const file = ev.target.files?.[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = function(){
+        try {
+          const raw = JSON.parse(reader.result || '{}');
+          const payload = raw.data || raw;
+          applyState(payload);
+          if(raw.name || payload.projectName){
+            byId('projectName').value = raw.name || payload.projectName;
+          }
+          saveState();
+          alert('Проект загружен.');
+        } catch (err) {
+          alert('Ошибка импорта: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    };
+    inp.click();
   }
 
   ['proName','proPhone'].forEach((id) => {
@@ -898,6 +1001,9 @@ function buildTKPHtml(d, rows, sums){
     if(t.closest('#addRow')){ addRow({qty:1,type:'Работа'}); renumber(); calc(); saveState(); }
     if(t.closest('#btnTKP')) openTKPWindow();
     if(t.closest('#btnSaveTKP')) downloadTKP();
+    if(t.closest('#btnSaveProject')) saveProjectLocally();
+    if(t.closest('#btnDownloadProject')) downloadProject();
+    if(t.closest('#btnImportProject')) importProjectFromFile();
     if(t.closest('#btnPrintAll')) window.print();
     if(t.closest('#btnClear')){ if(confirm('Очистить смету?')){ localStorage.removeItem(LS_KEY); location.reload(); } }
     if(t.closest('#exportPrice')){
@@ -914,13 +1020,27 @@ function buildTKPHtml(d, rows, sums){
     }
   });
 
-  const stateFields = ['client','site','date','estimateNo','validDays','currency','note','wallMaterial', ...PERCENT_FIELDS];
+  const stateFields = ['client','site','date','estimateNo','validDays','currency','note','wallMaterial','projectName', ...PERCENT_FIELDS];
   stateFields.forEach((id) => {
     const el = byId(id);
     if (el) {
       el.addEventListener('input', () => { calc(); saveState(); });
     }
   });
+
+  const savedProjectsSelect = byId('savedProjects');
+  if(savedProjectsSelect){
+    savedProjectsSelect.addEventListener('change', () => {
+      const idx = parseInt(savedProjectsSelect.value, 10);
+      if(Number.isNaN(idx)) return;
+      const saved = getSavedProjects();
+      const picked = saved[idx];
+      if(!picked) return;
+      applyState(picked.data || picked);
+      if(picked.name) byId('projectName').value = picked.name;
+      saveState();
+    });
+  }
 
   restore();
 })();
