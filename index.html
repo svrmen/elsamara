@@ -745,10 +745,10 @@ function buildTKPHtml(d, rows, sums){
     + 'th,td{border:1px solid #ccc;padding:6px;text-align:left;vertical-align:top}'
     + 'th.num,td.num{width:44px;text-align:center;white-space:nowrap}'
     + 'th.name,td.name{word-break:break-word}'
-    + 'th.unit,td.unit{width:72px;white-space:nowrap}'
-    + 'th.qty,td.qty{width:86px;white-space:nowrap;text-align:right}'
-    + 'th.price,td.price{width:150px;white-space:nowrap;text-align:right}'
-    + 'th.sum,td.sum{width:180px;white-space:nowrap;text-align:right}'
+    + 'th.unit,td.unit{width:44px;white-space:nowrap}'
+    + 'th.qty,td.qty{width:78px;white-space:nowrap;text-align:right}'
+    + 'th.price,td.price{width:105px;white-space:nowrap;text-align:right}'
+    + 'th.sum,td.sum{width:126px;white-space:nowrap;text-align:right}'
     + '.hdr{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}'
     + '.badge{display:inline-block;padding:6px 10px;border:1px solid #c7d2fe;background:#eef2ff;border-radius:999px}'
     + '</style></head><body>';
@@ -778,10 +778,10 @@ function buildTKPHtml(d, rows, sums){
     + '<colgroup>'
     +   '<col style="width:44px">'
     +   '<col>'                      /* Наименование — тянется и переносится */
-    +   '<col style="width:72px">'
-    +   '<col style="width:86px">'
-    +   '<col style="width:150px">'  /* Цена — шире, без переноса */
-    +   '<col style="width:180px">'  /* Сумма — шире, без переноса */
+    +   '<col style="width:44px">'
+    +   '<col style="width:78px">'
+    +   '<col style="width:105px">'  /* Цена — фикс ширины, без переноса */
+    +   '<col style="width:126px">'  /* Сумма — фикс ширины, без переноса */
     + '</colgroup>'
     + '<thead><tr>'
     +   '<th class="num">#</th>'
