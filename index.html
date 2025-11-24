@@ -918,7 +918,9 @@ function buildTKPHtml(d, rows, sums){
     + '</div><div><div class="badge">Исполнитель</div><div style="margin-top:6px"><b>'+(d.pro.name||'Станислав')
     + '</b><br><a href="'+(tel?('tel:+'+tel):'#')+'">'+(d.pro.phone||'+7 919 809 45 88')+'</a></div></div></div><br>';
 
-  const visibleRows = rows.filter(function(r){ return r.qty>0 && r.price>=0; });
+  const visibleRows = rows.filter(function(r){
+    return (r.name || '').trim().length>0 && r.price>=0;
+  });
 
   const tableRows = visibleRows.map(function(r){
     return '<tr>'
