@@ -167,7 +167,7 @@ a.tel{color:inherit;text-decoration:none}
           <th class="priceCol">Цена</th>     <!-- было фикс шириной -->
           <th style="width:120px">Кол-во</th>
           <th>Сумма</th>
-          <th style="width:40px"></th>
+          <th style="width:110px"></th>
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
@@ -488,13 +488,39 @@ a.tel{color:inherit;text-decoration:none}
       '<td style="max-width:140px"><input class="price right" type="number" inputmode="decimal" step="0.01" min="0" value="'+(it.price||0)+'"></td>'+
       '<td style="max-width:120px"><input class="qty right" type="number" inputmode="decimal" step="0.01" min="0" value="'+(it.qty||1)+'"></td>'+
       '<td class="right sumCell">0</td>'+
-      '<td class="right"><button class="danger del">×</button></td>';
+      '<td class="right">'+
+        '<div class="row" style="justify-content:flex-end;gap:4px">'+
+          '<button class="ghost btn-sm moveUp" title="Поднять">▲</button>'+
+          '<button class="ghost btn-sm moveDown" title="Опустить">▼</button>'+
+          '<button class="danger btn-sm del" title="Удалить">✖</button>'+
+        '</div>'+
+      '</td>';
     tbody.appendChild(tr);
     tr.querySelectorAll('input,select').forEach((el) => el.addEventListener('input', () => { calc(); saveState(); }));
+    const moveUpBtn = tr.querySelector('.moveUp');
+    const moveDownBtn = tr.querySelector('.moveDown');
+    if(moveUpBtn) moveUpBtn.addEventListener('click', () => moveRow(tr, -1));
+    if(moveDownBtn) moveDownBtn.addEventListener('click', () => moveRow(tr, 1));
     tr.querySelector('.del').addEventListener('click', () => { tr.remove(); renumber(); calc(); saveState(); });
     if(!opts.skipUpdate){ renumber(); calc(); saveState(); }
   }
   function renumber(){ $$('#tbody .idx').forEach((c, i) => { c.textContent = i + 1; }); }
+  function moveRow(tr, delta){
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const idx = rows.indexOf(tr);
+    if(idx === -1) return;
+    const targetIdx = idx + delta;
+    if(targetIdx < 0 || targetIdx >= rows.length) return;
+    const target = rows[targetIdx];
+    if(delta < 0){
+      tbody.insertBefore(tr, target);
+    } else {
+      tbody.insertBefore(target, tr);
+    }
+    renumber();
+    calc();
+    saveState();
+  }
   function getRows(){ return $$('#tbody tr').map((tr) => ({
     name: tr.querySelector('.name').value.trim(),
     unit: tr.querySelector('.unit').value.trim(),
