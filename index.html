@@ -18,7 +18,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.46 system-ui,-ap
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
 h1{font-size:22px;margin:0 0 2px}
 h2{font-size:16px;margin:0 0 8px;color:var(--muted)}
-input,select,textarea{background:#f8fafc;border:1px solid #d6dbe6;color:var(--ink);border-radius:10px;padding:10px;outline:none;width:100%}
+input,select,textarea{background:#eef1f6;border:1px solid #d6dbe6;color:var(--ink);border-radius:10px;padding:10px;outline:none;width:100%}
 ::placeholder{color:#94a3b8}
 button{background:#fff;border:1px solid #cfd6e3;color:#0f172a;border-radius:10px;padding:8px 10px;cursor:pointer}
 button.primary{background:var(--accent);border-color:transparent;color:#fff;font-weight:600}
@@ -36,6 +36,23 @@ table{width:100%;border-collapse:collapse}
 th,td{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-align:middle}
 .right{text-align:right}
 .pill{font-size:12px;border:1px solid #cfd6e3;padding:2px 8px;border-radius:999px;color:var(--muted);background:#fff}
+.unitCol{width:90px}
+.typeCol{width:120px}
+.priceCol{width:140px}
+.qtyCol{width:120px}
+#items td.unitCell input,#items td.typeCell select,#items td.priceCell input,#items td.qtyCell input{width:100%}
+.formGrid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.field{display:grid;gap:6px}
+.field span.label{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.field small{color:var(--muted)}
+.field .stack{display:grid;gap:8px}
+.field .row.wrap{padding:0}
+.field.col-2{grid-column:1/-1}
+.segmented{display:inline-flex;border:1px solid #d6dbe6;border-radius:10px;overflow:hidden}
+.segmented button{border:none;border-right:1px solid #d6dbe6;background:#f8fafc;padding:8px 12px;font-weight:600}
+.segmented button:last-child{border-right:none}
+.segmented button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.help-hint{font-size:13px;color:var(--muted)}
 
 /* Модалка */
 .backdrop{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
@@ -76,9 +93,9 @@ a.tel{color:inherit;text-decoration:none}
   #items thead{display:none}
   #items tbody,#items tr,#items td{display:block;width:100%}
   #items tbody tr{background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:12px;box-shadow:0 6px 18px rgba(15,23,42,.08)}
-  #items td{padding:10px;display:grid;grid-template-columns:110px 1fr;gap:8px;align-items:center}
+  #items td{padding:10px;display:grid;grid-template-columns:120px 1fr;gap:8px;align-items:center}
   #items td::before{content:attr(data-label);font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.02em}
-  #items td input,#items td select{width:100%}
+  #items td input,#items td select{width:100%;max-width:none}
   #items td .row{justify-content:flex-start}
   #items td.actions{grid-template-columns:1fr}
   #items td.actions .row{gap:6px}
@@ -90,6 +107,34 @@ a.tel{color:inherit;text-decoration:none}
   .totals{grid-template-columns:1fr}
   .card.grid:last-of-type{position:sticky;bottom:0;z-index:5;background:#fff;box-shadow:0 -8px 24px rgba(0,0,0,.08)}
 }
+
+body.mobile-mode{
+  font-size:15px;
+}
+body.mobile-mode .wrap{padding:10px}
+body.mobile-mode h1{font-size:18px}
+body.mobile-mode h2{font-size:15px}
+body.mobile-mode .card{padding:12px}
+body.mobile-mode .row{gap:6px}
+body.mobile-mode input,body.mobile-mode select,body.mobile-mode textarea,body.mobile-mode button{min-height:44px;font-size:15px}
+body.mobile-mode button.btn-sm{min-height:38px}
+body.mobile-mode #items{display:block}
+body.mobile-mode #items thead{display:none}
+body.mobile-mode #items tbody,body.mobile-mode #items tr,body.mobile-mode #items td{display:block;width:100%}
+body.mobile-mode #items tbody tr{background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:12px;box-shadow:0 6px 18px rgba(15,23,42,.08)}
+body.mobile-mode #items td{padding:10px;display:grid;grid-template-columns:120px 1fr;gap:8px;align-items:center}
+body.mobile-mode #items td::before{content:attr(data-label);font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.02em}
+body.mobile-mode #items td input,body.mobile-mode #items td select{width:100%;max-width:none}
+body.mobile-mode #items td .row{justify-content:flex-start}
+body.mobile-mode #items td.actions{grid-template-columns:1fr}
+body.mobile-mode #items td.actions .row{gap:6px}
+body.mobile-mode .modal{width:100%;max-width:none;height:96vh;max-height:96vh;border-radius:12px}
+body.mobile-mode .modalBody{grid-template-rows:auto 1fr}
+body.mobile-mode .list{height:calc(96vh - 210px)}
+body.mobile-mode .item{grid-template-columns:24px 1fr auto}
+body.mobile-mode .priceEdit{width:78px}
+body.mobile-mode .totals{grid-template-columns:1fr}
+body.mobile-mode .card.grid:last-of-type{position:sticky;bottom:0;z-index:5;background:#fff;box-shadow:0 -8px 24px rgba(0,0,0,.08)}
 </style>
 </head>
 <body>
@@ -109,45 +154,83 @@ a.tel{color:inherit;text-decoration:none}
         <div class="chip">👤 <span id="proNameView">Станислав</span></div>
       </div>
     </div>
+    <div class="row wrap" style="justify-content:space-between;align-items:center;gap:10px;margin-top:8px">
+      <div class="muted">Отображение:</div>
+      <div class="segmented" id="viewToggle" role="group" aria-label="Переключение вида">
+        <button type="button" data-mode="desktop" class="active">💻 Веб-версия</button>
+        <button type="button" data-mode="mobile">📱 Мобильная</button>
+      </div>
+    </div>
   </div>
 
   <!-- Реквизиты -->
   <div class="card grid">
     <h2>Данные клиента и исполнителя</h2>
-    <div class="row wrap">
-      <input class="grow" id="client" placeholder="Клиент" />
-      <input class="grow" id="site" placeholder="Адрес / объект" />
-      <input style="max-width:180px" id="date" type="date" />
-      <input style="max-width:120px" id="currency" placeholder="Валюта" value="р." />
-    </div>
-    <div class="row wrap">
-      <label style="min-width:160px">Материал стен</label>
-      <select id="wallMaterial" style="max-width:260px">
-        <option value="">Не выбран</option>
-        <option value="brick">Кирпич</option>
-        <option value="gypsum">Гипс</option>
-        <option value="concrete">Бетон</option>
-      </select>
-      <div class="muted" style="font-size:13px">Выбор применит типовые позиции из прайса.</div>
-    </div>
-    <div class="row wrap">
-      <input class="grow" id="projectName" placeholder="Название проекта" value="Проект" />
-      <select id="savedProjects" style="min-width:240px;max-width:320px">
-        <option value="">Сохранённые проекты</option>
-      </select>
-      <button id="btnDeleteProject" class="danger" title="Удалить выбранный проект">✖</button>
-      <button id="btnSaveProject" class="primary">Сохранить проект</button>
-      <button id="btnDownloadProject">Скачать проект</button>
-      <button id="btnImportProject">Загрузить из файла</button>
-    </div>
-    <div class="row wrap">
-      <input class="grow" id="estimateNo" placeholder="№ сметы (необязательно)" />
-      <input class="grow" id="validDays" type="number" min="0" placeholder="Срок действия, дней (например 7)" />
-    </div>
-    <div class="divider"></div>
-    <div class="row wrap">
-      <input class="grow" id="proName" value="Станислав" placeholder="Исполнитель — имя" />
-      <input class="grow" id="proPhone" value="+7 919 809 45 88" placeholder="Исполнитель — телефон" />
+    <div class="formGrid">
+      <label class="field">
+        <span class="label">Клиент</span>
+        <input id="client" placeholder="Например: Иванов Иван" />
+      </label>
+      <label class="field">
+        <span class="label">Адрес / объект</span>
+        <input id="site" placeholder="Улица, дом, квартира" />
+      </label>
+      <label class="field">
+        <span class="label">Дата</span>
+        <input id="date" type="date" />
+      </label>
+      <label class="field">
+        <span class="label">Валюта</span>
+        <input id="currency" placeholder="р." value="р." />
+      </label>
+      <label class="field">
+        <span class="label">№ сметы</span>
+        <input id="estimateNo" placeholder="Необязательно" />
+      </label>
+      <label class="field">
+        <span class="label">Срок действия (дней)</span>
+        <input id="validDays" type="number" min="0" placeholder="Например: 7" />
+      </label>
+      <label class="field">
+        <span class="label">Материал стен</span>
+        <select id="wallMaterial">
+          <option value="">Не выбран</option>
+          <option value="brick">Кирпич</option>
+          <option value="gypsum">Гипс</option>
+          <option value="concrete">Бетон</option>
+        </select>
+        <small>Выбор применит типовые позиции из прайса.</small>
+      </label>
+      <label class="field">
+        <span class="label">Название проекта</span>
+        <input id="projectName" placeholder="Например: Квартира на Ленина" value="Проект" />
+      </label>
+      <div class="field col-2">
+        <span class="label">Сохранённые проекты</span>
+        <div class="stack">
+          <div class="row wrap" style="gap:8px">
+            <select id="savedProjects" style="min-width:240px;max-width:320px">
+              <option value="">Сохранённые проекты</option>
+            </select>
+            <button id="btnDeleteProject" class="danger" title="Удалить выбранный проект">✖</button>
+          </div>
+          <div class="row wrap" style="gap:8px">
+            <button id="btnSaveProject" class="primary">Сохранить проект</button>
+            <button id="btnDownloadProject">Скачать проект</button>
+            <button id="btnImportProject">Загрузить из файла</button>
+          </div>
+        </div>
+      </div>
+      <div class="field col-2">
+        <span class="label">Исполнитель</span>
+        <div class="stack">
+          <div class="row wrap" style="gap:8px">
+            <input class="grow" id="proName" value="Станислав" placeholder="Имя" />
+            <input class="grow" id="proPhone" value="+7 919 809 45 88" placeholder="Телефон" />
+          </div>
+          <div class="help-hint">Эти данные попадут в шапку ТКП и шапку страницы.</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -173,10 +256,10 @@ a.tel{color:inherit;text-decoration:none}
         <tr>
           <th style="width:32px">#</th>
           <th>Наименование</th>
-          <th style="width:90px">Ед.</th>
-          <th style="width:120px">Тип</th>
-          <th class="priceCol">Цена</th>     <!-- было фикс шириной -->
-          <th style="width:120px">Кол-во</th>
+          <th class="unitCol">Ед.</th>
+          <th class="typeCol">Тип</th>
+          <th class="priceCol">Цена</th>
+          <th class="qtyCol">Кол-во</th>
           <th>Сумма</th>
           <th style="width:110px"></th>
         </tr>
@@ -257,6 +340,7 @@ a.tel{color:inherit;text-decoration:none}
   const LS_KEY = 'electro_estimate_v1';
   const LS_PROJECTS = 'electro_saved_projects_v1';
   const LS_PRICE = 'electro_price_list_2025_02';
+  const LS_VIEW_MODE = 'electro_view_mode_v1';
   const DEFAULT_PRO = { name: 'Станислав', phone: '+7 919 809 45 88' };
   const PERCENT_FIELDS = ['laborDiscount', 'matMarkup', 'matDiscount', 'vat'];
   const WALL_TEMPLATES = {
@@ -347,6 +431,32 @@ a.tel{color:inherit;text-decoration:none}
     const phoneLink = byId('proPhoneLink');
     phoneLink.href = href;
     phoneLink.textContent = displayPhone;
+  }
+
+  function setViewMode(mode, { persist = true } = {}){
+    const normalized = mode === 'mobile' ? 'mobile' : 'desktop';
+    doc.body.classList.toggle('mobile-mode', normalized === 'mobile');
+    const toggle = byId('viewToggle');
+    if(toggle){
+      toggle.querySelectorAll('button').forEach((btn) => {
+        const isActive = btn.dataset.mode === normalized;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+    }
+    if(persist){
+      try { localStorage.setItem(LS_VIEW_MODE, normalized); } catch (error) {}
+    }
+  }
+
+  function restoreViewMode(){
+    let stored = 'desktop';
+    try {
+      stored = localStorage.getItem(LS_VIEW_MODE) || 'desktop';
+    } catch (error) {
+      stored = 'desktop';
+    }
+    setViewMode(stored, { persist: false });
   }
 
   /* ===== ПРАЙС (из вашего списка) ===== */
@@ -489,15 +599,15 @@ a.tel{color:inherit;text-decoration:none}
     tr.innerHTML =
       '<td class="idx" data-label="№"></td>'+
       '<td data-label="Наименование"><input class="name" placeholder="Наименование" value="'+(it.name||'')+'"></td>'+
-      '<td data-label="Единица" style="max-width:90px"><input class="unit" placeholder="ед." value="'+(it.unit||'')+'"></td>'+
-      '<td data-label="Тип" style="max-width:120px">'+
+      '<td data-label="Единица" class="unitCell"><input class="unit" placeholder="ед." value="'+(it.unit||'')+'"></td>'+
+      '<td data-label="Тип" class="typeCell">'+
         '<select class="type">'+
           '<option '+(it.type==='Работа'?'selected':'')+'>Работа</option>'+
           '<option '+(it.type==='Материал'?'selected':'')+'>Материал</option>'+
         '</select>'+
       '</td>'+
-      '<td data-label="Цена" style="max-width:140px"><input class="price right" type="number" inputmode="decimal" step="0.01" min="0" value="'+(it.price||0)+'"></td>'+
-      '<td data-label="Кол-во" style="max-width:120px"><input class="qty right" type="number" inputmode="decimal" step="0.01" min="0" value="'+(it.qty||1)+'"></td>'+
+      '<td data-label="Цена" class="priceCell"><input class="price right" type="number" inputmode="decimal" step="0.01" min="0" value="'+(it.price||0)+'"></td>'+
+      '<td data-label="Кол-во" class="qtyCell"><input class="qty right" type="number" inputmode="decimal" step="0.01" min="0" value="'+(it.qty||1)+'"></td>'+
       '<td data-label="Сумма" class="right sumCell">0</td>'+
       '<td data-label="Действия" class="right actions">'+
         '<div class="row" style="justify-content:flex-end;gap:4px">'+
@@ -1111,6 +1221,16 @@ function buildTKPHtml(d, rows, sums){
     });
   }
 
+  const viewToggle = byId('viewToggle');
+  if(viewToggle){
+    viewToggle.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-mode]');
+      if(!btn) return;
+      setViewMode(btn.dataset.mode);
+    });
+  }
+
+  restoreViewMode();
   restore();
 })();
 </script>
