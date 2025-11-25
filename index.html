@@ -42,6 +42,13 @@ th,td{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-a
 .priceCol{width:140px}
 .qtyCol{width:120px}
 #items td.nameCell input,#items td.unitCell input,#items td.typeCell select,#items td.priceCell input,#items td.qtyCell input{width:100%}
+.infoGrid{display:grid;gap:12px}
+.lineGrid{display:grid;gap:10px}
+.lineGrid.cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.lineGrid.cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.savedProjectsRow .row{gap:8px;align-items:center;flex-wrap:wrap}
+.savedProjectsRow select{flex:1;min-width:220px}
+.savedProjectsRow button{white-space:nowrap}
 .formGrid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
 .field{display:grid;gap:6px}
 .field span.label{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
@@ -71,6 +78,7 @@ th,td{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-a
 .item:hover{background:#f3f6fb}
 .priceEdit{width:88px}
 .note{min-height:74px}
+.noteRow{width:100%}
 a.tel{color:inherit;text-decoration:none}
 
 /* Итоги */
@@ -78,6 +86,11 @@ a.tel{color:inherit;text-decoration:none}
 .block{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px}
 .line{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding:6px 0}
 .line:last-child{border-bottom:none}
+
+@media (max-width: 1200px){
+  .lineGrid.cols-5{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+  .lineGrid.cols-4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+}
 
 /* === MOBILE PATCH === */
 @media (max-width: 740px){
@@ -167,60 +180,67 @@ body.mobile-mode .card.grid:last-of-type{position:sticky;bottom:0;z-index:5;back
   <!-- Реквизиты -->
   <div class="card grid">
     <h2>Данные клиента и исполнителя</h2>
-    <div class="formGrid">
-      <label class="field">
-        <span class="label">Клиент</span>
-        <input id="client" placeholder="Например: Иванов Иван" />
-      </label>
-      <label class="field">
-        <span class="label">Адрес / объект</span>
-        <input id="site" placeholder="Улица, дом, квартира" />
-      </label>
-      <label class="field">
-        <span class="label">Дата</span>
-        <input id="date" type="date" />
-      </label>
-      <label class="field">
-        <span class="label">Валюта</span>
-        <input id="currency" placeholder="р." value="р." />
-      </label>
-      <label class="field">
-        <span class="label">№ сметы</span>
-        <input id="estimateNo" placeholder="Необязательно" />
-      </label>
-      <label class="field">
-        <span class="label">Срок действия (дней)</span>
-        <input id="validDays" type="number" min="0" placeholder="Например: 7" />
-      </label>
-      <label class="field">
-        <span class="label">Материал стен</span>
-        <select id="wallMaterial">
-          <option value="">Не выбран</option>
-          <option value="brick">Кирпич</option>
-          <option value="gypsum">Гипс</option>
-          <option value="concrete">Бетон</option>
-        </select>
-      </label>
-      <label class="field">
-        <span class="label">Название проекта</span>
-        <input id="projectName" placeholder="Например: Квартира на Ленина" value="Проект" />
-      </label>
-      <div class="field col-2">
+    <div class="infoGrid">
+      <div class="lineGrid cols-5">
+        <label class="field">
+          <span class="label">Клиент</span>
+          <input id="client" placeholder="Например: Иванов Иван" />
+        </label>
+        <label class="field">
+          <span class="label">Адрес</span>
+          <input id="site" placeholder="Улица, дом, квартира" />
+        </label>
+        <label class="field">
+          <span class="label">Объект</span>
+          <input id="objectName" placeholder="Например: Квартира, офис" />
+        </label>
+        <label class="field">
+          <span class="label">Дата</span>
+          <input id="date" type="date" />
+        </label>
+        <label class="field">
+          <span class="label">Валюта</span>
+          <input id="currency" placeholder="р." value="р." />
+        </label>
+      </div>
+
+      <div class="lineGrid cols-4">
+        <label class="field">
+          <span class="label">№ сметы</span>
+          <input id="estimateNo" placeholder="Необязательно" />
+        </label>
+        <label class="field">
+          <span class="label">Срок действия (дней)</span>
+          <input id="validDays" type="number" min="0" placeholder="Например: 7" />
+        </label>
+        <label class="field">
+          <span class="label">Материал стен</span>
+          <select id="wallMaterial">
+            <option value="">Не выбран</option>
+            <option value="brick">Кирпич</option>
+            <option value="gypsum">Гипс</option>
+            <option value="concrete">Бетон</option>
+          </select>
+        </label>
+        <label class="field">
+          <span class="label">Название проекта</span>
+          <input id="projectName" placeholder="Например: Квартира на Ленина" value="Проект" />
+        </label>
+      </div>
+
+      <div class="field savedProjectsRow">
         <span class="label">Сохранённые проекты</span>
-        <div class="stack">
-          <div class="row wrap" style="gap:8px">
-            <select id="savedProjects" style="min-width:240px;max-width:320px">
-              <option value="">Сохранённые проекты</option>
-            </select>
-            <button id="btnDeleteProject" class="danger" title="Удалить выбранный проект">✖</button>
-          </div>
-          <div class="row wrap" style="gap:8px">
-            <button id="btnSaveProject" class="primary">Сохранить проект</button>
-            <button id="btnDownloadProject">Скачать проект</button>
-            <button id="btnImportProject">Загрузить из файла</button>
-          </div>
+        <div class="row" style="gap:8px">
+          <select id="savedProjects">
+            <option value="">Сохранённые проекты</option>
+          </select>
+          <button id="btnDeleteProject" class="danger" title="Удалить выбранный проект">✖</button>
+          <button id="btnSaveProject" class="primary">Сохранить проект</button>
+          <button id="btnDownloadProject">Скачать проект</button>
+          <button id="btnImportProject">Загрузить из файла</button>
         </div>
       </div>
+
       <div class="field col-2">
         <span class="label">Исполнитель</span>
         <div class="stack">
@@ -267,8 +287,8 @@ body.mobile-mode .card.grid:last-of-type{position:sticky;bottom:0;z-index:5;back
       <tbody id="tbody"></tbody>
     </table>
 
-    <div class="row wrap">
-      <textarea id="note" class="note grow" placeholder="Примечание для ТКП (появится в самом конце, например: «Для начала работ требуется предоплата на закупку материалов…»)"></textarea>
+    <div class="row wrap noteRow">
+      <textarea id="note" class="note" placeholder="Примечание для ТКП (появится в самом конце, например: «Для начала работ требуется предоплата на закупку материалов…»)"></textarea>
     </div>
   </div>
 
@@ -709,6 +729,7 @@ body.mobile-mode .card.grid:last-of-type{position:sticky;bottom:0;z-index:5;back
     projectName: readInputValue('projectName') || 'Проект',
     client: readInputValue('client'),
     site: readInputValue('site'),
+    objectName: readInputValue('objectName'),
     date: byId('date').value,
     estimateNo: readInputValue('estimateNo'),
     validDays: readInputValue('validDays'),
@@ -741,11 +762,12 @@ body.mobile-mode .card.grid:last-of-type{position:sticky;bottom:0;z-index:5;back
     byId('currency').value = state.currency || 'р.';
     byId('wallMaterial').value = state.wallMaterial || '';
     lastSelectedWallMaterial = byId('wallMaterial').value || '';
-    if(state.client) byId('client').value=state.client;
-    if(state.site) byId('site').value=state.site;
-    if(state.estimateNo) byId('estimateNo').value=state.estimateNo;
-    if(state.validDays) byId('validDays').value=state.validDays;
-    if(state.note) byId('note').value=state.note;
+    byId('client').value = state.client || '';
+    byId('site').value = state.site || '';
+    byId('objectName').value = state.objectName || '';
+    byId('estimateNo').value = state.estimateNo || '';
+    byId('validDays').value = state.validDays || '';
+    byId('note').value = state.note || '';
 
     byId('laborDiscount').value = (state.totals&&state.totals.laborDiscount)||'';
     byId('matMarkup').value     = (state.totals&&state.totals.matMarkup)||'';
@@ -1031,11 +1053,19 @@ function buildTKPHtml(d, rows, sums){
     + '.badge{display:inline-block;padding:6px 10px;border:1px solid #c7d2fe;background:#eef2ff;border-radius:999px}'
     + '</style></head><body>';
 
+  const address = d.site || '';
+  const objectName = d.objectName || '';
+  const locationParts = [];
+  if(address) locationParts.push('Адрес: <b>'+address+'</b>');
+  if(objectName) locationParts.push('Объект: <b>'+objectName+'</b>');
+  const locationLine = locationParts.length ? '<div>'+locationParts.join(' • ')+'</div>' : '';
+
   const tel=(d.pro.phone||'').replace(/\D+/g,'');
   const hdr = '<div class="hdr"><div>'
     + '<h2 style="margin:0 0 6px">Техническо-коммерческое предложение</h2>'
     + '<div style="color:#555">Дата: '+(d.date||'')+' • № '+(d.estimateNo||'-')+' • Срок действия: '+(d.validDays?d.validDays+' дней':'—')+'</div>'
-    + '<div>Клиент: <b>'+(d.client||'')+'</b> • Объект: <b>'+(d.site||'')+'</b></div>'
+    + '<div>Клиент: <b>'+(d.client||'')+'</b></div>'
+    + locationLine
     + '</div><div><div class="badge">Исполнитель</div><div style="margin-top:6px"><b>'+(d.pro.name||'Станислав')
     + '</b><br><a href="'+(tel?('tel:+'+tel):'#')+'">'+(d.pro.phone||'+7 919 809 45 88')+'</a></div></div></div><br>';
 
@@ -1198,7 +1228,7 @@ function buildTKPHtml(d, rows, sums){
     }
   });
 
-  const stateFields = ['client','site','date','estimateNo','validDays','currency','note','wallMaterial','projectName', ...PERCENT_FIELDS];
+  const stateFields = ['client','site','objectName','date','estimateNo','validDays','currency','note','wallMaterial','projectName', ...PERCENT_FIELDS];
   stateFields.forEach((id) => {
     const el = byId(id);
     if (el) {
