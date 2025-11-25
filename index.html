@@ -295,13 +295,15 @@ body.mobile-mode .card.grid:last-of-type{position:sticky;bottom:0;z-index:5;back
       <div class="block">
         <div class="line"><span>Работы</span><b id="laborSum">0</b></div>
         <div class="line"><span>Материалы</span><b id="matSum">0</b></div>
-        <div class="row wrap" style="margin-top:8px">
-          <input id="laborDiscount" placeholder="Скидка на работы, %" style="max-width:200px">
-          <input id="laborDiscountValue" placeholder="Скидка на работы, ₽" style="max-width:200px">
-          <input id="matMarkup" placeholder="Наценка на материалы, %" style="max-width:220px">
-          <input id="matMarkupValue" placeholder="Наценка на материалы, ₽" style="max-width:200px">
-          <input id="matDiscount" placeholder="Скидка на материалы, %" style="max-width:220px">
-          <input id="matDiscountValue" placeholder="Скидка на материалы, ₽" style="max-width:200px">
+        <div class="grid" style="gap:8px;margin-top:8px">
+          <div class="row wrap" style="gap:8px">
+            <input id="laborDiscount" placeholder="Скидка на работы, %" style="max-width:220px">
+            <input id="laborDiscountValue" placeholder="Скидка на работы, ₽" style="max-width:220px">
+          </div>
+          <div class="row wrap" style="gap:8px">
+            <input id="matDiscount" placeholder="Скидка на материалы, %" style="max-width:220px">
+            <input id="matDiscountValue" placeholder="Скидка на материалы, ₽" style="max-width:220px">
+          </div>
         </div>
       </div>
       <div class="block">
@@ -360,8 +362,8 @@ body.mobile-mode .card.grid:last-of-type{position:sticky;bottom:0;z-index:5;back
   const LS_PRICE = 'electro_price_list_2025_02';
   const LS_VIEW_MODE = 'electro_view_mode_v1';
   const DEFAULT_PRO = { name: 'Станислав', phone: '+7 919 809 45 88' };
-  const PERCENT_FIELDS = ['laborDiscount', 'matMarkup', 'matDiscount'];
-  const MONEY_FIELDS = ['laborDiscountValue', 'matMarkupValue', 'matDiscountValue'];
+  const PERCENT_FIELDS = ['laborDiscount', 'matDiscount'];
+  const MONEY_FIELDS = ['laborDiscountValue', 'matDiscountValue'];
   const WALL_TEMPLATES = {
     brick: [
       'Штробление стен под проводку. (кирпич)',
@@ -443,8 +445,6 @@ body.mobile-mode .card.grid:last-of-type{position:sticky;bottom:0;z-index:5;back
   const getAdjustments = () => ({
     laborDiscountPct: readPercentValue('laborDiscount'),
     laborDiscountValue: readMoneyValue('laborDiscountValue'),
-    matMarkupPct: readPercentValue('matMarkup'),
-    matMarkupValue: readMoneyValue('matMarkupValue'),
     matDiscountPct: readPercentValue('matDiscount'),
     matDiscountValue: readMoneyValue('matDiscountValue')
   });
@@ -606,7 +606,7 @@ body.mobile-mode .card.grid:last-of-type{position:sticky;bottom:0;z-index:5;back
 
   /* ===== Таблица сметы ===== */
   const tbody = byId('tbody');
-  let lastTotals = { labor: 0, materials: 0, subtotal: 0, grand: 0, laborDiscountAmount: 0, matMarkupAmount: 0, matDiscountAmount: 0 };
+  let lastTotals = { labor: 0, materials: 0, subtotal: 0, grand: 0, laborDiscountAmount: 0, matDiscountAmount: 0 };
   let lastSelectedWallMaterial = '';
   const fmt = (n) => {
     const cur = byId('currency').value || 'р.';
@@ -712,19 +712,15 @@ body.mobile-mode .card.grid:last-of-type{position:sticky;bottom:0;z-index:5;back
     byId('laborSum').textContent=fmt(labor);
     byId('matSum').textContent=fmt(mat);
 
-    const { laborDiscountPct, laborDiscountValue, matMarkupPct, matMarkupValue, matDiscountPct, matDiscountValue } = getAdjustments();
+    const { laborDiscountPct, laborDiscountValue, matDiscountPct, matDiscountValue } = getAdjustments();
 
     const laborDiscountPctAmount = labor * laborDiscountPct;
     const laborDiscountAmount = Math.min(laborDiscountPctAmount + laborDiscountValue, labor);
     const laborAfter   = Math.max(0, labor - laborDiscountAmount);
 
-    const matMarkupPctAmount = mat * matMarkupPct;
-    const matMarkupAmount = Math.max(0, matMarkupPctAmount + matMarkupValue);
-    const matWithMk    = mat + matMarkupAmount;
-
-    const matDiscountPctAmount = matWithMk * matDiscountPct;
-    const matDiscountAmount = Math.min(matDiscountPctAmount + matDiscountValue, matWithMk);
-    const matAfter     = Math.max(0, matWithMk - matDiscountAmount);
+    const matDiscountPctAmount = mat * matDiscountPct;
+    const matDiscountAmount = Math.min(matDiscountPctAmount + matDiscountValue, mat);
+    const matAfter     = Math.max(0, mat - matDiscountAmount);
 
     const subtotal = laborAfter + matAfter;
 
@@ -734,7 +730,6 @@ body.mobile-mode .card.grid:last-of-type{position:sticky;bottom:0;z-index:5;back
       subtotal,
       grand: subtotal,
       laborDiscountAmount,
-      matMarkupAmount,
       matDiscountAmount
     };
 
@@ -759,8 +754,6 @@ body.mobile-mode .card.grid:last-of-type{position:sticky;bottom:0;z-index:5;back
       grand: fmt(lastTotals.grand),
       laborDiscount: readInputValue('laborDiscount'),
       laborDiscountValue: readInputValue('laborDiscountValue'),
-      matMarkup: readInputValue('matMarkup'),
-      matMarkupValue: readInputValue('matMarkupValue'),
       matDiscount: readInputValue('matDiscount'),
       matDiscountValue: readInputValue('matDiscountValue')
     },
@@ -787,8 +780,6 @@ body.mobile-mode .card.grid:last-of-type{position:sticky;bottom:0;z-index:5;back
 
     byId('laborDiscount').value       = (state.totals&&state.totals.laborDiscount)||'';
     byId('laborDiscountValue').value  = (state.totals&&state.totals.laborDiscountValue)||'';
-    byId('matMarkup').value           = (state.totals&&state.totals.matMarkup)||'';
-    byId('matMarkupValue').value      = (state.totals&&state.totals.matMarkupValue)||'';
     byId('matDiscount').value         = (state.totals&&state.totals.matDiscount)||'';
     byId('matDiscountValue').value    = (state.totals&&state.totals.matDiscountValue)||'';
 
@@ -1136,11 +1127,6 @@ function buildTKPHtml(d, rows, sums){
   footer += '<tr><td style="border:1px solid #ccc;padding:6px">Материалы</td><td style="border:1px solid #ccc;padding:6px;white-space:nowrap;text-align:right">'
     + sums.mat.toFixed(2)+'&nbsp;'+cur+'</td></tr>';
 
-  if(sums.matMarkupAmount>0){
-    footer += '<tr><td style="border:1px solid #ccc;padding:6px">Наценка на материалы</td>'
-      + '<td style="border:1px solid #ccc;padding:6px;white-space:nowrap;text-align:right">+'
-      + sums.matMarkupAmount.toFixed(2)+'&nbsp;'+cur+ formatAdjustmentDetails(sums.markupPct, sums.matMarkupValue) + '</td></tr>';
-  }
   if(sums.matDiscountAmount>0){
     footer += '<tr><td style="border:1px solid #ccc;padding:6px">Скидка на материалы</td>'
       + '<td style="border:1px solid #ccc;padding:6px;white-space:nowrap;text-align:right">- '
@@ -1161,19 +1147,15 @@ function buildTKPHtml(d, rows, sums){
     let labor=0; let mat=0;
     rows.forEach((r)=>{ if(r.type==='Материал') mat+=r.sum; else labor+=r.sum; });
 
-    const { laborDiscountPct, laborDiscountValue, matMarkupPct, matMarkupValue, matDiscountPct, matDiscountValue } = getAdjustments();
+    const { laborDiscountPct, laborDiscountValue, matDiscountPct, matDiscountValue } = getAdjustments();
 
     const laborDiscountPctAmount = labor * laborDiscountPct;
     const laborDiscountAmount = Math.min(laborDiscountPctAmount + laborDiscountValue, labor);
     const laborAfter         = Math.max(0, labor - laborDiscountAmount);
 
-    const matMarkupPctAmount = mat * matMarkupPct;
-    const matMarkupAmount    = Math.max(0, matMarkupPctAmount + matMarkupValue);
-    const matWithMarkup      = mat + matMarkupAmount;
-
-    const matDiscountPctAmount = matWithMarkup * matDiscountPct;
-    const matDiscountAmount  = Math.min(matDiscountPctAmount + matDiscountValue, matWithMarkup);
-    const matAfterMatDisc    = Math.max(0, matWithMarkup - matDiscountAmount);
+    const matDiscountPctAmount = mat * matDiscountPct;
+    const matDiscountAmount  = Math.min(matDiscountPctAmount + matDiscountValue, mat);
+    const matAfterMatDisc    = Math.max(0, mat - matDiscountAmount);
 
     const subtotal = laborAfter + matAfterMatDisc;
 
@@ -1183,9 +1165,6 @@ function buildTKPHtml(d, rows, sums){
       laborDiscountValue,
       laborDiscountAmount,
       mat,
-      markupPct: matMarkupPct,
-      matMarkupValue,
-      matMarkupAmount,
       matDiscountPct,
       matDiscountValue,
       matDiscountAmount,
