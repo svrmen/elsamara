@@ -13,7 +13,7 @@
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.46 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
-.wrap{max-width:1100px;margin:0 auto;padding:16px}
+.wrap{max-width:1480px;margin:0 auto;padding:16px}
 .grid{display:grid;gap:12px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
 h1{font-size:22px;margin:0 0 2px}
@@ -36,11 +36,12 @@ table{width:100%;border-collapse:collapse}
 th,td{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-align:middle}
 .right{text-align:right}
 .pill{font-size:12px;border:1px solid #cfd6e3;padding:2px 8px;border-radius:999px;color:var(--muted);background:#fff}
+.nameCol{min-width:380px}
 .unitCol{width:90px}
 .typeCol{width:120px}
 .priceCol{width:140px}
 .qtyCol{width:120px}
-#items td.unitCell input,#items td.typeCell select,#items td.priceCell input,#items td.qtyCell input{width:100%}
+#items td.nameCell input,#items td.unitCell input,#items td.typeCell select,#items td.priceCell input,#items td.qtyCell input{width:100%}
 .formGrid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
 .field{display:grid;gap:6px}
 .field span.label{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
@@ -199,7 +200,6 @@ body.mobile-mode .card.grid:last-of-type{position:sticky;bottom:0;z-index:5;back
           <option value="gypsum">Гипс</option>
           <option value="concrete">Бетон</option>
         </select>
-        <small>Выбор применит типовые позиции из прайса.</small>
       </label>
       <label class="field">
         <span class="label">Название проекта</span>
@@ -255,7 +255,7 @@ body.mobile-mode .card.grid:last-of-type{position:sticky;bottom:0;z-index:5;back
       <thead>
         <tr>
           <th style="width:32px">#</th>
-          <th>Наименование</th>
+          <th class="nameCol">Наименование</th>
           <th class="unitCol">Ед.</th>
           <th class="typeCol">Тип</th>
           <th class="priceCol">Цена</th>
@@ -598,7 +598,7 @@ body.mobile-mode .card.grid:last-of-type{position:sticky;bottom:0;z-index:5;back
     const tr = doc.createElement('tr');
     tr.innerHTML =
       '<td class="idx" data-label="№"></td>'+
-      '<td data-label="Наименование"><input class="name" placeholder="Наименование" value="'+(it.name||'')+'"></td>'+
+      '<td data-label="Наименование" class="nameCell"><input class="name" placeholder="Наименование" value="'+(it.name||'')+'"></td>'+
       '<td data-label="Единица" class="unitCell"><input class="unit" placeholder="ед." value="'+(it.unit||'')+'"></td>'+
       '<td data-label="Тип" class="typeCell">'+
         '<select class="type">'+
