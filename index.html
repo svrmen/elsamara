@@ -181,18 +181,14 @@ body.mobile-mode .card.grid:last-of-type{position:sticky;bottom:0;z-index:5;back
   <div class="card grid">
     <h2>Данные клиента и исполнителя</h2>
     <div class="infoGrid">
-      <div class="lineGrid cols-5">
+      <div class="lineGrid cols-4">
         <label class="field">
           <span class="label">Клиент</span>
           <input id="client" placeholder="Например: Иванов Иван" />
         </label>
         <label class="field">
-          <span class="label">Адрес</span>
-          <input id="site" placeholder="Улица, дом, квартира" />
-        </label>
-        <label class="field">
-          <span class="label">Объект</span>
-          <input id="objectName" placeholder="Например: Квартира, офис" />
+          <span class="label">Адрес / Объект</span>
+          <input id="site" placeholder="Улица, дом, квартира; тип объекта" />
         </label>
         <label class="field">
           <span class="label">Дата</span>
@@ -729,7 +725,6 @@ body.mobile-mode .card.grid:last-of-type{position:sticky;bottom:0;z-index:5;back
     projectName: readInputValue('projectName') || 'Проект',
     client: readInputValue('client'),
     site: readInputValue('site'),
-    objectName: readInputValue('objectName'),
     date: byId('date').value,
     estimateNo: readInputValue('estimateNo'),
     validDays: readInputValue('validDays'),
@@ -763,8 +758,7 @@ body.mobile-mode .card.grid:last-of-type{position:sticky;bottom:0;z-index:5;back
     byId('wallMaterial').value = state.wallMaterial || '';
     lastSelectedWallMaterial = byId('wallMaterial').value || '';
     byId('client').value = state.client || '';
-    byId('site').value = state.site || '';
-    byId('objectName').value = state.objectName || '';
+    byId('site').value = [state.site, state.objectName].filter(Boolean).join(' / ');
     byId('estimateNo').value = state.estimateNo || '';
     byId('validDays').value = state.validDays || '';
     byId('note').value = state.note || '';
@@ -1053,12 +1047,8 @@ function buildTKPHtml(d, rows, sums){
     + '.badge{display:inline-block;padding:6px 10px;border:1px solid #c7d2fe;background:#eef2ff;border-radius:999px}'
     + '</style></head><body>';
 
-  const address = d.site || '';
-  const objectName = d.objectName || '';
-  const locationParts = [];
-  if(address) locationParts.push('Адрес: <b>'+address+'</b>');
-  if(objectName) locationParts.push('Объект: <b>'+objectName+'</b>');
-  const locationLine = locationParts.length ? '<div>'+locationParts.join(' • ')+'</div>' : '';
+  const addressLine = d.site || d.objectName || '';
+  const locationLine = addressLine ? '<div>Адрес/Объект: <b>'+addressLine+'</b></div>' : '';
 
   const tel=(d.pro.phone||'').replace(/\D+/g,'');
   const hdr = '<div class="hdr"><div>'
@@ -1228,7 +1218,7 @@ function buildTKPHtml(d, rows, sums){
     }
   });
 
-  const stateFields = ['client','site','objectName','date','estimateNo','validDays','currency','note','wallMaterial','projectName', ...PERCENT_FIELDS];
+  const stateFields = ['client','site','date','estimateNo','validDays','currency','note','wallMaterial','projectName', ...PERCENT_FIELDS];
   stateFields.forEach((id) => {
     const el = byId(id);
     if (el) {
